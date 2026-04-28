@@ -11,15 +11,15 @@ const subCitiesMock: Omit<SubCity, 'createdAt' | 'updatedAt'>[] = [
 ];
 
 const kebelesMock: Omit<Kebele, 'createdAt' | 'updatedAt'>[] = [
-  // Gofer Meda Kebeles
-  { id: 'kb-1', name: 'Arada', subCityId: 'sc-1', latitude: 7.56, longitude: 37.85 },
-  { id: 'kb-2', name: 'Bobicho', subCityId: 'sc-1', latitude: 7.57, longitude: 37.86 },
+  // Gofer Meda Kebeles - Centered around provided hotel locations for realism
+  { id: 'kb-1', name: 'Arada', subCityId: 'sc-1', latitude: 7.5505, longitude: 37.8548 }, // Victory Hotel
+  { id: 'kb-2', name: 'Bobicho', subCityId: 'sc-1', latitude: 7.5489, longitude: 37.8560 }, // Lemma Intl Hotel
   // Sech Duna Kebeles
-  { id: 'kb-3', name: 'Heto', subCityId: 'sc-2', latitude: 7.55, longitude: 37.90 },
-  { id: 'kb-4', name: 'Sech Duna Kebele', subCityId: 'sc-2', latitude: 7.54, longitude: 37.91 },
+  { id: 'kb-3', name: 'Heto', subCityId: 'sc-2', latitude: 7.5578, longitude: 37.8578 }, // Hotel Shambalala
+  { id: 'kb-4', name: 'Sech Duna Kebele', subCityId: 'sc-2', latitude: 7.5512, longitude: 37.8525 }, // Ediget Hotel
   // Addis Kebeles
-  { id: 'kb-5', name: 'Lich Amba', subCityId: 'sc-3', latitude: 7.60, longitude: 37.95 },
-  { id: 'kb-6', name: 'Jello Naramo', subCityId: 'sc-3', latitude: 7.61, longitude: 37.96 },
+  { id: 'kb-5', name: 'Lich Amba', subCityId: 'sc-3', latitude: 7.5530, longitude: 37.8505 }, // Woze Star Hotel
+  { id: 'kb-6', name: 'Jello Naramo', subCityId: 'sc-3', latitude: 7.5520, longitude: 37.8530 }, // Beteket Hotel
 ];
 
 const ketenasMock: Omit<Ketena, 'createdAt' | 'updatedAt'>[] = [
@@ -46,6 +46,7 @@ const ketenasMock: Omit<Ketena, 'createdAt' | 'updatedAt'>[] = [
 const firstNames = ['Abebe', 'Lelisa', 'Fatuma', 'Mekdes', 'Yohannes', 'Birtukan', 'Tsegaye', 'Freweini', 'Haile', 'Sofia', 'Getachew', 'Zenebech', 'Dawit', 'Meseret', 'Kassahun', 'Tigist'];
 const lastNames = ['Bekele', 'Dadi', 'Ahmed', 'Gebre', 'Tadesse', 'Mamo', 'Haile', 'Abdi', 'Wolde', 'Ali', 'Nigussie', 'Assefa', 'Girma', 'Mengesha', 'Zewde'];
 const houseTypes: House['houseType'][] = ['Owned', 'Rented', 'Government'];
+const landmarks = ['market', 'school', 'church', 'clinic', 'Victory Hotel', 'Lemma Hotel', 'Shambalala Hotel'];
 
 // Helper Functions
 const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
@@ -53,8 +54,8 @@ const generateRandomDate = (start: Date, end: Date) => new Date(start.getTime() 
 const generatePhoneNumber = () => `09${Math.floor(10000000 + Math.random() * 90000000)}`;
 
 const generateCoordinates = (baseLat: number, baseLng: number) => ({
-  lat: baseLat + (Math.random() - 0.5) * 0.005, // within ~500m of kebele center
-  lng: baseLng + (Math.random() - 0.5) * 0.005,
+  lat: baseLat + (Math.random() - 0.5) * 0.0025, // within ~275m of kebele center
+  lng: baseLng + (Math.random() - 0.5) * 0.0025,
 });
 
 // 3. Generate House Records
@@ -71,7 +72,7 @@ const housesMock: House[] = Array.from({ length: 80 }, (_, i) => {
     phoneNumber: generatePhoneNumber(),
     familySize: Math.floor(Math.random() * 8) + 1,
     houseType: getRandomItem(houseTypes),
-    addressDescription: `Near ${getRandomItem(['market', 'school', 'church', 'clinic'])} in ${ketena.name}`,
+    addressDescription: `Near ${getRandomItem(landmarks)} in ${ketena.name}`,
     latitude: coords.lat,
     longitude: coords.lng,
     subCityId: subCity.id,
