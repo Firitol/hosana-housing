@@ -12,8 +12,6 @@ import { collection, collectionGroup } from 'firebase/firestore';
 import type { House, SubCity, Kebele, Ketena } from '@/lib/definitions';
 import useSupercluster from 'use-supercluster';
 import { ExternalLink, Home } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
 
 function useDebounce<T>(value: T, delay: number): T {
     const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -23,11 +21,109 @@ function useDebounce<T>(value: T, delay: number): T {
     }, [value, delay]);
     return debouncedValue;
 }
-  
+
+// This new component is a child of APIProvider and can safely use useMap()
+function MapController({ filteredHouses, selectedHouse, setSelectedHouse }: { filteredHouses: House[], selectedHouse: House | null, setSelectedHouse: (house: House | null) => void }) {
+    const map = useMap();
+
+    const points = useMemo(() => filteredHouses.map(house => ({
+        type: 'Feature',
+        properties: { cluster: false, houseId: house.id, ...house },
+        geometry: { type: 'Point', coordinates: [house.longitude, house.latitude] }
+    })), [filteredHouses]);
+
+    const [bounds, setBounds] = useState<number[] | undefined>();
+    const [zoom, setZoom] = useState(12);
+    
+    const { clusters, supercluster } = useSupercluster({
+        points: points as any,
+        bounds,
+        zoom,
+        options: { radius: 75, maxZoom: 20 }
+    });
+
+    const handleMapChange = (e: { zoom: number; bounds: google.maps.LatLngBounds | undefined; }) => {
+        setZoom(e.zoom);
+        setBounds(e.bounds ? [
+          e.bounds.getSouthWest().lng(),
+          e.bounds.getSouthWest().lat(),
+          e.bounds.getNorthEast().lng(),
+          e.bounds.getNorthEast().lat(),
+        ] : undefined);
+      };
+
+    const defaultCenter = { lat: 7.54978, lng: 37.85374 };
+
+    return (
+        <Map
+            defaultCenter={defaultCenter}
+            defaultZoom={13}
+            mapId="geo-dashboard-map"
+            className="rounded-lg h-full w-full"
+            gestureHandling="greedy"
+            onCameraChanged={e => handleMapChange({zoom: e.detail.zoom, bounds: e.detail.bounds})}
+        >
+            {clusters.map(cluster => {
+                const [longitude, latitude] = cluster.geometry.coordinates;
+                const { cluster: isCluster, point_count: pointCount, houseId } = cluster.properties;
+
+                if (isCluster) {
+                    return (
+                        <AdvancedMarker 
+                            key={`cluster-${cluster.id}`} 
+                            position={{ lat: latitude, lng: longitude }}
+                            onClick={() => {
+                                if (map && supercluster) {
+                                    const expansionZoom = Math.min(supercluster.getClusterExpansionZoom(cluster.id as number), 20);
+                                    map.moveCamera({ center: {lat: latitude, lng: longitude}, zoom: expansionZoom });
+                                }
+                            }}
+                        >
+                            <div className="w-8 h-8 rounded-full bg-primary/80 text-primary-foreground flex items-center justify-center font-bold text-sm border-2 border-primary-foreground shadow-md">
+                                {pointCount}
+                            </div>
+                        </AdvancedMarker>
+                    );
+                }
+                
+                const house = filteredHouses.find(h => h.id === houseId);
+                return (
+                    <AdvancedMarker 
+                        key={`house-${houseId}`} 
+                        position={{ lat: latitude, lng: longitude }}
+                        onClick={() => setSelectedHouse(house || null)}
+                    >
+                        <div className="w-5 h-5">
+                            <Home className="w-full h-full text-red-600 drop-shadow-md" />
+                        </div>
+                    </AdvancedMarker>
+                );
+            })}
+
+            {selectedHouse && (
+                <InfoWindow
+                    position={{lat: selectedHouse.latitude, lng: selectedHouse.longitude}}
+                    onCloseClick={() => setSelectedHouse(null)}
+                    minWidth={250}
+                >
+                    <div className="space-y-2 text-sm">
+                        <h4 className="font-bold">{selectedHouse.houseNumber}</h4>
+                        <p><strong>Householder:</strong> {selectedHouse.householderName}</p>
+                        <p><strong>Phone:</strong> {selectedHouse.phoneNumber}</p>
+                        <Button size="sm" asChild>
+                            <a href={`https://www.google.com/maps?q=${selectedHouse.latitude},${selectedHouse.longitude}`} target="_blank" rel="noopener noreferrer">
+                                Open in Google Maps <ExternalLink className="ml-2 h-4 w-4" />
+                            </a>
+                        </Button>
+                    </div>
+                </InfoWindow>
+            )}
+        </Map>
+    );
+}
 
 export default function GeoMapDashboardPage() {
     const firestore = useFirestore();
-    const map = useMap();
 
     // Data Fetching
     const housesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'houses') : null, [firestore]);
@@ -90,36 +186,7 @@ export default function GeoMapDashboardPage() {
         });
     }, [houses, debouncedSearchQuery, selectedSubCity, selectedKebele, selectedKetena]);
 
-    // Format for Clustering
-    const points = useMemo(() => filteredHouses.map(house => ({
-        type: 'Feature',
-        properties: { cluster: false, houseId: house.id, ...house },
-        geometry: { type: 'Point', coordinates: [house.longitude, house.latitude] }
-    })), [filteredHouses]);
-
-    // Clustering Hook
-    const [bounds, setBounds] = useState<number[] | undefined>();
-    const [zoom, setZoom] = useState(12);
-    
-    const { clusters, supercluster } = useSupercluster({
-        points: points as any,
-        bounds,
-        zoom,
-        options: { radius: 75, maxZoom: 20 }
-    });
-
-    const handleMapChange = (e: { zoom: number; bounds: google.maps.LatLngBounds | undefined; }) => {
-        setZoom(e.zoom);
-        setBounds(e.bounds ? [
-          e.bounds.getSouthWest().lng(),
-          e.bounds.getSouthWest().lat(),
-          e.bounds.getNorthEast().lng(),
-          e.bounds.getNorthEast().lat(),
-        ] : undefined);
-      };
-
     const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-    const defaultCenter = { lat: 7.54978, lng: 37.85374 };
 
     if (!googleMapsApiKey) {
         return (
@@ -132,70 +199,11 @@ export default function GeoMapDashboardPage() {
     return (
         <div className="h-[calc(100vh-6rem)] w-full flex relative">
             <APIProvider apiKey={googleMapsApiKey}>
-                <Map
-                    defaultCenter={defaultCenter}
-                    defaultZoom={13}
-                    mapId="geo-dashboard-map"
-                    className="rounded-lg h-full w-full"
-                    gestureHandling="greedy"
-                    onCameraChanged={e => handleMapChange({zoom: e.detail.zoom, bounds: e.detail.bounds})}
-                >
-                    {clusters.map(cluster => {
-                        const [longitude, latitude] = cluster.geometry.coordinates;
-                        const { cluster: isCluster, point_count: pointCount, houseId } = cluster.properties;
-
-                        if (isCluster) {
-                            return (
-                                <AdvancedMarker 
-                                    key={`cluster-${cluster.id}`} 
-                                    position={{ lat: latitude, lng: longitude }}
-                                    onClick={() => {
-                                        if (map && supercluster) {
-                                            const expansionZoom = Math.min(supercluster.getClusterExpansionZoom(cluster.id as number), 20);
-                                            map.moveCamera({ center: {lat: latitude, lng: longitude}, zoom: expansionZoom });
-                                        }
-                                    }}
-                                >
-                                    <div className="w-8 h-8 rounded-full bg-primary/80 text-primary-foreground flex items-center justify-center font-bold text-sm border-2 border-primary-foreground shadow-md">
-                                        {pointCount}
-                                    </div>
-                                </AdvancedMarker>
-                            );
-                        }
-                        
-                        const house = filteredHouses.find(h => h.id === houseId);
-                        return (
-                            <AdvancedMarker 
-                                key={`house-${houseId}`} 
-                                position={{ lat: latitude, lng: longitude }}
-                                onClick={() => setSelectedHouse(house || null)}
-                            >
-                                <div className="w-5 h-5">
-                                    <Home className="w-full h-full text-red-600 drop-shadow-md" />
-                                </div>
-                            </AdvancedMarker>
-                        );
-                    })}
-
-                    {selectedHouse && (
-                        <InfoWindow
-                            position={{lat: selectedHouse.latitude, lng: selectedHouse.longitude}}
-                            onCloseClick={() => setSelectedHouse(null)}
-                            minWidth={250}
-                        >
-                            <div className="space-y-2 text-sm">
-                                <h4 className="font-bold">{selectedHouse.houseNumber}</h4>
-                                <p><strong>Householder:</strong> {selectedHouse.householderName}</p>
-                                <p><strong>Phone:</strong> {selectedHouse.phoneNumber}</p>
-                                <Button size="sm" asChild>
-                                    <a href={`https://www.google.com/maps?q=${selectedHouse.latitude},${selectedHouse.longitude}`} target="_blank" rel="noopener noreferrer">
-                                        Open in Google Maps <ExternalLink className="ml-2 h-4 w-4" />
-                                    </a>
-                                </Button>
-                            </div>
-                        </InfoWindow>
-                    )}
-                </Map>
+                <MapController 
+                    filteredHouses={filteredHouses}
+                    selectedHouse={selectedHouse}
+                    setSelectedHouse={setSelectedHouse}
+                />
             </APIProvider>
 
             <Card className="absolute top-4 left-4 w-full max-w-sm max-h-[calc(100%-2rem)] flex flex-col">
@@ -246,3 +254,5 @@ export default function GeoMapDashboardPage() {
         </div>
     );
 }
+
+    
