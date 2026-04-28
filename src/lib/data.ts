@@ -59,32 +59,98 @@ const generateCoordinates = (baseLat: number, baseLng: number) => ({
 });
 
 // 3. Generate House Records
-const housesMock: House[] = Array.from({ length: 80 }, (_, i) => {
-  const ketena = getRandomItem(ketenasMock);
-  const kebele = kebelesMock.find(k => k.id === ketena.kebeleId)!;
-  const subCity = subCitiesMock.find(sc => sc.id === kebele.subCityId)!;
-  const coords = generateCoordinates(kebele.latitude, kebele.longitude);
 
-  return {
-    id: `${1000 + i}`,
-    houseNumber: `HOS-${String(1001 + i).padStart(4, '0')}`,
-    householderName: `${getRandomItem(firstNames)} ${getRandomItem(lastNames)}`,
-    phoneNumber: generatePhoneNumber(),
-    familySize: Math.floor(Math.random() * 8) + 1,
-    houseType: getRandomItem(houseTypes),
-    addressDescription: `Near ${getRandomItem(landmarks)} in ${ketena.name}`,
-    latitude: coords.lat,
-    longitude: coords.lng,
-    subCityId: subCity.id,
-    kebeleId: kebele.id,
-    ketenaId: ketena.id,
-    // @ts-ignore
-    createdAt: generateRandomDate(new Date(2023, 0, 1), new Date()),
-    // @ts-ignore
-    updatedAt: generateRandomDate(new Date(), new Date()),
-    createdBy: `user_${i % 2}`
-  };
-});
+// Start with the real samples provided
+const realSamples: House[] = [
+    {
+      id: 'real-1',
+      houseNumber: 'HOS-001',
+      householderName: 'Abebe Kebede',
+      phoneNumber: generatePhoneNumber(),
+      familySize: 4,
+      houseType: 'Owned',
+      addressDescription: 'Near Victory Hotel',
+      latitude: 7.5512,
+      longitude: 37.8551,
+      subCityId: 'sc-1', // Gofer Meda
+      kebeleId: 'kb-1', // Arada
+      ketenaId: 'kt-1',
+      // @ts-ignore
+      createdAt: generateRandomDate(new Date(2023, 0, 1), new Date()),
+      // @ts-ignore
+      updatedAt: generateRandomDate(new Date(), new Date()),
+      createdBy: 'user_1',
+    },
+    {
+      id: 'real-2',
+      houseNumber: 'HOS-002',
+      householderName: 'Meseret Alemu',
+      phoneNumber: generatePhoneNumber(),
+      familySize: 3,
+      houseType: 'Rented',
+      addressDescription: 'Near Lemma International Hotel',
+      latitude: 7.5487,
+      longitude: 37.8529,
+      subCityId: 'sc-1', // Gofer Meda
+      kebeleId: 'kb-2', // Bobicho
+      ketenaId: 'kt-3',
+      // @ts-ignore
+      createdAt: generateRandomDate(new Date(2023, 0, 1), new Date()),
+      // @ts-ignore
+      updatedAt: generateRandomDate(new Date(), new Date()),
+      createdBy: 'user_1',
+    },
+    {
+      id: 'real-3',
+      houseNumber: 'HOS-003',
+      householderName: 'Tadesse Bekele',
+      phoneNumber: generatePhoneNumber(),
+      familySize: 5,
+      houseType: 'Government',
+      addressDescription: 'Near Hotel Shambalala',
+      latitude: 7.5570,
+      longitude: 37.8575,
+      subCityId: 'sc-2', // Sech Duna
+      kebeleId: 'kb-3', // Heto
+      ketenaId: 'kt-4',
+      // @ts-ignore
+      createdAt: generateRandomDate(new Date(2023, 0, 1), new Date()),
+      // @ts-ignore
+      updatedAt: generateRandomDate(new Date(), new Date()),
+      createdBy: 'user_0',
+    },
+  ];
+  
+  
+  // Generate the rest of the mock data
+  const generatedHouses: House[] = Array.from({ length: 77 }, (_, i) => { // Generate 77 more to make a total of 80
+    const ketena = getRandomItem(ketenasMock);
+    const kebele = kebelesMock.find(k => k.id === ketena.kebeleId)!;
+    const subCity = subCitiesMock.find(sc => sc.id === kebele.subCityId)!;
+    const coords = generateCoordinates(kebele.latitude, kebele.longitude);
+  
+    return {
+      id: `${1000 + i}`,
+      houseNumber: `HOS-${String(1004 + i).padStart(4, '0')}`, // Start from HOS-004
+      householderName: `${getRandomItem(firstNames)} ${getRandomItem(lastNames)}`,
+      phoneNumber: generatePhoneNumber(),
+      familySize: Math.floor(Math.random() * 8) + 1,
+      houseType: getRandomItem(houseTypes),
+      addressDescription: `Near ${getRandomItem(landmarks)} in ${ketena.name}`,
+      latitude: coords.lat,
+      longitude: coords.lng,
+      subCityId: subCity.id,
+      kebeleId: kebele.id,
+      ketenaId: ketena.id,
+      // @ts-ignore
+      createdAt: generateRandomDate(new Date(2023, 0, 1), new Date()),
+      // @ts-ignore
+      updatedAt: generateRandomDate(new Date(), new Date()),
+      createdBy: `user_${i % 2}`
+    };
+  });
+  
+  const housesMock: House[] = [...realSamples, ...generatedHouses];
 
 // 4. Users and Audit Logs
 const usersMock: User[] = [
