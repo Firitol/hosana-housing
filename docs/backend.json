@@ -21,7 +21,13 @@
         },
         "role": {
           "type": "string",
-          "description": "The assigned role of the user, determining their access and permissions within the system. (Possible values: Mayor, Sub-city Official, Woreda Administrator, Kebele Officer)"
+          "description": "The assigned role of the user, determining their access and permissions within the system. (Possible values: Mayor, Sub-city Official, Woreda Administrator, Kebele Officer)",
+          "enum": [
+            "Mayor",
+            "Sub-city Official",
+            "Woreda Administrator",
+            "Kebele Officer"
+          ]
         },
         "phoneNumber": {
           "type": "string",
@@ -215,7 +221,12 @@
         },
         "houseType": {
           "type": "string",
-          "description": "The type of ownership or tenure for the house. (Possible values: owned, rented, government)"
+          "description": "The type of ownership or tenure for the house. (Possible values: owned, rented, government)",
+          "enum": [
+            "Owned",
+            "Rented",
+            "Government"
+          ]
         },
         "addressDescription": {
           "type": "string",
@@ -428,3 +439,5 @@
     "reasoning": "The Firestore data structure for the Hosana City Housing Management System is designed following the core principles of Authorization Independence, Structural Segregation, and standardized Access Modeling. This approach minimizes complexity in security rules, enhances debuggability, and ensures scalability.\n\n**Authorization Independence:** This is achieved primarily through strategic denormalization. For instance:\n*   **User Documents (`/users/{userId}`):** The user's `role` and associated administrative IDs (`subCityId`, `woredaId`, `kebeleId`) are stored directly on their user profile document. This enables security rules to fetch the user's authorization context with a single `get()` operation on their own profile (`get(/users/$(request.auth.uid))`) and then perform all subsequent authorization checks against `resource.data` without further hierarchical `get()` calls. This adheres to the DBAC mandate (roles in DB) while still enabling robust authorization checks.\n*   **Administrative Hierarchy (`/subCities/{subCityId}/woredas/{woredaId}/kebeles/{kebeleId}`):** Each Woreda document explicitly includes `subCityId`, and each Kebele document explicitly includes both `subCityId` and `woredaId` (denormalizing from its parent Woreda's parent SubCity). This prevents rules from needing to `get()` parent documents to establish the full administrative path, enabling atomic operations and simplifying rule logic for administrative division access.\n*   **House Documents (`/houses/{houseId}`):** Crucially, every `House` document includes denormalized `subCityId`, `woredaId`, and `kebeleId`. This allows any rule checking access to a house (e.g., a Kebele officer accessing houses in their kebele) to directly compare `request.auth.kebeleId` (from their user profile) with `resource.data.kebeleId` without requiring any `get()` operations on the administrative hierarchy documents. This is a foundational aspect for secure and performant rules.\n\n**QAPs (Rules are not Filters) and Structural Segregation:**\n*   **Homogeneous Security Posture:** Each top-level collection (`/users`, `/subCities`, `/houses`, `/auditLogs`) or sub-collection (`/subCities/{subCityId}/woredas`, `/subCities/{subCityId}/woredas/{woredaId}/kebeles`) is designed to contain documents with uniform security requirements. For example, all documents in `/houses` represent housing records that require location-based access control. This avoids mixing data with different access needs, simplifying rule sets.\n*   **Queryable Authorization Fields:** Because `subCityId`, `woredaId`, and `kebeleId` are denormalized into `House` documents, clients can issue queries like `db.collection('houses').where('kebeleId', '==', userKebeleId)`. Firestore security rules can then efficiently validate these queries by ensuring that the `resource.data.kebeleId` matches the `request.auth.kebeleId` (obtained from the user's profile), thus enforcing QAPs by ensuring no unauthorized data is returned or accessed. The structure enables rules to assert *all* retrieved documents satisfy the authorization criteria, rather than attempting to filter results after retrieval."
   }
 }
+
+    

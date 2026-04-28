@@ -13,14 +13,35 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { HosanaNexusLogo } from '@/components/icons';
+import { useAuth } from '@/firebase';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export function LoginForm() {
   const router = useRouter();
+  const auth = useAuth();
+  const { toast } = useToast();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Mock login logic
-    router.push('/dashboard');
+    setIsLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      router.push('/dashboard');
+    } catch (error: any) {
+      console.error(error);
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message,
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -44,6 +65,9 @@ export function LoginForm() {
               type="email"
               placeholder="m@example.com"
               required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={isLoading}
             />
           </div>
           <div className="grid gap-2">
@@ -53,10 +77,17 @@ export function LoginForm() {
                 Forgot your password?
               </Link>
             </div>
-            <Input id="password" type="password" required />
+            <Input 
+              id="password" 
+              type="password" 
+              required 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={isLoading}
+            />
           </div>
-          <Button type="submit" className="w-full">
-            Login
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? 'Logging in...' : 'Login'}
           </Button>
         </form>
         <div className="mt-4 text-center text-sm">
@@ -69,3 +100,5 @@ export function LoginForm() {
     </Card>
   );
 }
+
+    

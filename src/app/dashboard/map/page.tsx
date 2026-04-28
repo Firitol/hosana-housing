@@ -1,8 +1,15 @@
+'use client';
+
 import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
-import { houses } from "@/lib/data";
 import { Card, CardContent } from "@/components/ui/card";
+import { useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { collection } from "firebase/firestore";
 
 export default function MapPage() {
+    const firestore = useFirestore();
+    const housesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'houses') : null, [firestore]);
+    const { data: houses, isLoading } = useCollection(housesQuery);
+    
     const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
     if (!googleMapsApiKey) {
@@ -21,21 +28,27 @@ export default function MapPage() {
             <p className="text-muted-foreground">Showing all registered housing locations.</p>
             <Card className="flex-1">
                 <CardContent className="p-0 h-full w-full">
-                <APIProvider apiKey={googleMapsApiKey}>
-                    <Map
-                        defaultCenter={defaultCenter}
-                        defaultZoom={12}
-                        mapId="full-map-view"
-                        className="rounded-lg h-full"
-                        gestureHandling="greedy"
-                    >
-                        {houses.map(house => (
-                            <Marker key={house.id} position={house.gps} title={house.houseNumber} />
-                        ))}
-                    </Map>
-                </APIProvider>
+                {isLoading ? (
+                    <div className="flex items-center justify-center h-full">Loading map data...</div>
+                ) : (
+                    <APIProvider apiKey={googleMapsApiKey}>
+                        <Map
+                            defaultCenter={defaultCenter}
+                            defaultZoom={12}
+                            mapId="full-map-view"
+                            className="rounded-lg h-full"
+                            gestureHandling="greedy"
+                        >
+                            {houses?.map(house => (
+                                <Marker key={house.id} position={{lat: house.latitude, lng: house.longitude}} title={house.houseNumber} />
+                            ))}
+                        </Map>
+                    </APIProvider>
+                )}
                 </CardContent>
             </Card>
         </div>
     );
 }
+
+    

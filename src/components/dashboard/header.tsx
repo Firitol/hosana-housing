@@ -3,6 +3,7 @@ import Image from 'next/image';
 import {
   Home,
   Search,
+  LogOut
 } from 'lucide-react';
 import {
   Breadcrumb,
@@ -23,10 +24,19 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { SidebarTrigger } from '../ui/sidebar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useAuth, useUser } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export function DashboardHeader() {
-  const userAvatar = PlaceHolderImages.find(img => img.id === 'user-avatar-1');
+  const { user } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
 
   return (
     <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
@@ -62,25 +72,31 @@ export function DashboardHeader() {
             size="icon"
             className="overflow-hidden rounded-full"
           >
-            {userAvatar && (
+            {user?.photoURL ? (
                  <Image
-                    src={userAvatar.imageUrl}
+                    src={user.photoURL}
                     width={36}
                     height={36}
                     alt="Avatar"
                     className="overflow-hidden rounded-full"
-                    data-ai-hint={userAvatar.imageHint}
                 />
+            ) : (
+              <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center text-muted-foreground">
+                {user?.email?.charAt(0).toUpperCase()}
+              </div>
             )}
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuLabel>My Account</DropdownMenuLabel>
+          <DropdownMenuLabel>{user?.displayName || user?.email}</DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Settings</DropdownMenuItem>
+          <Link href="/dashboard/settings"><DropdownMenuItem>Settings</DropdownMenuItem></Link>
           <DropdownMenuItem>Support</DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>Logout</DropdownMenuItem>
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            Logout
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
@@ -171,3 +187,5 @@ function ChevronRight(props: React.SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+    

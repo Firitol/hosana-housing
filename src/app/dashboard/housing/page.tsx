@@ -1,7 +1,8 @@
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { DataTable } from '@/components/housing/data-table';
-import { houses, subCities, woredas, kebeles } from '@/lib/data';
 import {
     Select,
     SelectContent,
@@ -10,8 +11,26 @@ import {
     SelectValue,
   } from "@/components/ui/select";
 import { Input } from '@/components/ui/input';
+import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
+import { collection, collectionGroup } from 'firebase/firestore';
 
-export default async function HousingPage() {
+export default function HousingPage() {
+    const firestore = useFirestore();
+
+    const housesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'houses') : null, [firestore]);
+    const { data: houses, isLoading: isLoadingHouses } = useCollection(housesQuery);
+
+    const subCitiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'subCities') : null, [firestore]);
+    const { data: subCities, isLoading: isLoadingSubCities } = useCollection(subCitiesQuery);
+
+    const woredasQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'woredas') : null, [firestore]);
+    const { data: woredas, isLoading: isLoadingWoredas } = useCollection(woredasQuery);
+    
+    const kebelesQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'kebeles') : null, [firestore]);
+    const { data: kebeles, isLoading: isLoadingKebeles } = useCollection(kebelesQuery);
+
+    const isLoading = isLoadingHouses || isLoadingSubCities || isLoadingWoredas || isLoadingKebeles;
+
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -27,7 +46,7 @@ export default async function HousingPage() {
                         <SelectValue placeholder="Filter by Sub-City" />
                     </SelectTrigger>
                     <SelectContent>
-                        {subCities.map(sc => <SelectItem key={sc.id} value={sc.id}>{sc.name}</SelectItem>)}
+                        {subCities?.map(sc => <SelectItem key={sc.id} value={sc.id}>{sc.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
                 <Select>
@@ -35,7 +54,7 @@ export default async function HousingPage() {
                         <SelectValue placeholder="Filter by Woreda" />
                     </SelectTrigger>
                     <SelectContent>
-                        {woredas.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
+                        {woredas?.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
                 <Select>
@@ -43,11 +62,17 @@ export default async function HousingPage() {
                         <SelectValue placeholder="Filter by Kebele" />
                     </SelectTrigger>
                     <SelectContent>
-                        {kebeles.map(k => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
+                        {kebeles?.map(k => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
             </div>
-            <DataTable data={houses} subCities={subCities} woredas={woredas} kebeles={kebeles} />
+            {isLoading ? (
+                <div className="text-center p-8">Loading data...</div>
+            ) : (
+                <DataTable data={houses || []} subCities={subCities || []} woredas={woredas || []} kebeles={kebeles || []} />
+            )}
         </div>
     );
 }
+
+    

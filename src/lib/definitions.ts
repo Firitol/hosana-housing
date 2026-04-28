@@ -1,26 +1,40 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type User = {
   id: string;
-  name: string;
+  fullName: string;
   email: string;
-  role: 'Mayor' | 'Sub-city' | 'Woreda' | 'Kebele';
-  avatarUrl: string;
+  role: 'Mayor' | 'Sub-city Official' | 'Woreda Administrator' | 'Kebele Officer';
+  phoneNumber: string;
+  isActive: boolean;
+  subCityId?: string;
+  woredaId?: string;
+  kebeleId?: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 };
 
 export type SubCity = {
   id: string;
   name: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 };
 
 export type Woreda = {
   id: string;
   name: string;
   subCityId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 };
 
 export type Kebele = {
   id: string;
   name: string;
   woredaId: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 };
 
 export type House = {
@@ -32,24 +46,25 @@ export type House = {
   familySize: number;
   houseType: 'Owned' | 'Rented' | 'Government';
   addressDescription: string;
-  gps: {
-    lat: number;
-    lng: number;
-  };
+  latitude: number;
+  longitude: number;
   subCityId: string;
   woredaId: string;
   kebeleId: string;
-  createdAt: string;
-  updatedAt: string;
+  createdBy: string;
+  createdAt: Timestamp;
+  updatedAt: Timestamp;
 };
 
 export type AuditLog = {
   id: string;
-  timestamp: string;
-  user: string;
+  timestamp: Timestamp;
   userId: string;
+  userEmail: string;
   action: 'CREATE' | 'UPDATE' | 'DELETE';
-  entityType: 'House' | 'User';
-  entityId?: string;
+  tableName: 'House' | 'User';
+  recordId?: string;
   description: string;
 };
+
+    

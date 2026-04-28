@@ -70,7 +70,10 @@ export function DataTable({ data, subCities, woredas, kebeles }: DataTableProps)
       accessorKey: 'createdAt',
       header: 'Registered On',
       cell: ({ row }) => {
-        return new Date(row.original.createdAt).toLocaleDateString();
+        const { createdAt } = row.original;
+        if (!createdAt) return 'N/A';
+        // @ts-ignore
+        return createdAt.toDate ? createdAt.toDate().toLocaleDateString() : new Date(createdAt).toLocaleDateString();
       }
     },
     {
@@ -160,3 +163,5 @@ export function DataTable({ data, subCities, woredas, kebeles }: DataTableProps)
     </div>
   );
 }
+
+    

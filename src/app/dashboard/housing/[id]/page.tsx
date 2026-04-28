@@ -1,21 +1,43 @@
-import { houses, subCities, woredas, kebeles } from "@/lib/data";
+'use client';
+
 import { notFound } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Pen } from "lucide-react";
 import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
+import { useDoc, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
+import { doc, collection, collectionGroup } from "firebase/firestore";
+import { House } from "@/lib/definitions";
 
 export default function HouseDetailPage({ params }: { params: { id: string } }) {
-  const house = houses.find(h => h.id === params.id);
+  const firestore = useFirestore();
 
+  const houseRef = useMemoFirebase(() => firestore ? doc(firestore, 'houses', params.id) : null, [firestore, params.id]);
+  const { data: house, isLoading: isLoadingHouse } = useDoc<House>(houseRef);
+
+  const subCitiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'subCities') : null, [firestore]);
+  const { data: subCities, isLoading: isLoadingSubCities } = useCollection(subCitiesQuery);
+
+  const woredasQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'woredas') : null, [firestore]);
+  const { data: woredas, isLoading: isLoadingWoredas } = useCollection(woredasQuery);
+
+  const kebelesQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'kebeles') : null, [firestore]);
+  const { data: kebeles, isLoading: isLoadingKebeles } = useCollection(kebelesQuery);
+
+  const isLoading = isLoadingHouse || isLoadingSubCities || isLoadingWoredas || isLoadingKebeles;
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+  
   if (!house) {
     notFound();
   }
 
-  const subCity = subCities.find(sc => sc.id === house.subCityId)?.name || 'N/A';
-  const woreda = woredas.find(w => w.id === house.woredaId)?.name || 'N/A';
-  const kebele = kebeles.find(k => k.id === house.kebeleId)?.name || 'N/A';
+  const subCity = subCities?.find(sc => sc.id === house.subCityId)?.name || 'N/A';
+  const woreda = woredas?.find(w => w.id === house.woredaId)?.name || 'N/A';
+  const kebele = kebeles?.find(k => k.id === house.kebeleId)?.name || 'N/A';
   
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -26,6 +48,8 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
       </div>
     );
   }
+
+  const gps = { lat: house.latitude, lng: house.longitude };
 
   return (
     <div className="space-y-6">
@@ -51,7 +75,7 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
             <div><strong>Woreda:</strong> {woreda}</div>
             <div><strong>Kebele:</strong> {kebele}</div>
             <div className="md:col-span-2"><strong>Address:</strong> {house.addressDescription}</div>
-            <div className="md:col-span-2"><strong>Registered:</strong> {new Date(house.createdAt).toLocaleDateString()}</div>
+            <div className="md:col-span-2"><strong>Registered:</strong> {house.createdAt?.toDate().toLocaleDateString() || 'N/A'}</div>
           </CardContent>
         </Card>
 
@@ -62,12 +86,12 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
           <CardContent className="h-[300px] w-full p-0">
              <APIProvider apiKey={googleMapsApiKey}>
                 <Map
-                  defaultCenter={house.gps}
+                  defaultCenter={gps}
                   defaultZoom={15}
                   mapId="house-detail-map"
                   className="rounded-b-lg"
                 >
-                  <Marker position={house.gps} />
+                  <Marker position={gps} />
                 </Map>
               </APIProvider>
           </CardContent>
@@ -76,3 +100,5 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
     </div>
   );
 }
+
+    

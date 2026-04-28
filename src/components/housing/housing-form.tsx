@@ -25,10 +25,13 @@ import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import type { House, SubCity, Woreda, Kebele } from '@/lib/definitions';
 import { MapPicker } from './map-picker';
+import { useFirestore, useUser, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
+import { collection, doc, serverTimestamp } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 const formSchema = z.object({
   householderName: z.string().min(2, 'Name is too short'),
-  phoneNumber: z.string().regex(/^09\d{8}$/, 'Invalid phone number'),
+  phoneNumber: z.string().regex(/^(09)\d{8}$/, 'Invalid phone number format (must be 09XXXXXXXX)'),
   nationalId: z.string().optional(),
   familySize: z.coerce.number().int().min(1, 'Family size must be at least 1'),
   houseType: z.enum(['Owned', 'Rented', 'Government']),
@@ -37,10 +40,8 @@ const formSchema = z.object({
   woredaId: z.string().nonempty('Woreda is required'),
   kebeleId: z.string().nonempty('Kebele is required'),
   houseNumber: z.string().nonempty('House number is required'),
-  gps: z.object({
-    lat: z.number(),
-    lng: z.number(),
-  }),
+  latitude: z.number(),
+  longitude: z.number(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -54,13 +55,18 @@ interface HousingFormProps {
 
 export function HousingForm({ subCities, woredas, kebeles, defaultValues }: HousingFormProps) {
   const router = useRouter();
+  const firestore = useFirestore();
+  const { user } = useUser();
+  const { toast } = useToast();
+
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: defaultValues ? {
       ...defaultValues,
       familySize: Number(defaultValues.familySize)
     } : {
-      gps: { lat: 9.005401, lng: 38.763611 }
+      latitude: 9.005401,
+      longitude: 38.763611
     }
   });
 
@@ -91,14 +97,41 @@ export function HousingForm({ subCities, woredas, kebeles, defaultValues }: Hous
   
   useEffect(() => {
     if (defaultValues) {
-      setFilteredWoredas(woredas.filter(w => w.subCityId === defaultValues.subCityId));
-      setFilteredKebeles(kebeles.filter(k => k.woredaId === defaultValues.woredaId));
+      if (defaultValues.subCityId) {
+        setFilteredWoredas(woredas.filter(w => w.subCityId === defaultValues.subCityId));
+      }
+      if (defaultValues.woredaId) {
+        setFilteredKebeles(kebeles.filter(k => k.woredaId === defaultValues.woredaId));
+      }
     }
   }, [defaultValues, woredas, kebeles]);
 
   function onSubmit(values: FormValues) {
-    console.log(values);
-    // Here you would typically call a server action to save the data
+    if (!user) {
+        toast({ variant: 'destructive', title: 'Error', description: 'You must be logged in to save a house.' });
+        return;
+    }
+    
+    if (defaultValues?.id) {
+      // Update existing document
+      const houseRef = doc(firestore, 'houses', defaultValues.id);
+      updateDocumentNonBlocking(houseRef, {
+        ...values,
+        updatedAt: serverTimestamp(),
+      });
+      toast({ title: 'Success', description: 'House updated successfully.' });
+    } else {
+      // Create new document
+      const housesCollection = collection(firestore, 'houses');
+      addDocumentNonBlocking(housesCollection, {
+        ...values,
+        createdBy: user.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      toast({ title: 'Success', description: 'House created successfully.' });
+    }
+    
     router.push('/dashboard/housing');
   }
 
@@ -234,8 +267,11 @@ export function HousingForm({ subCities, woredas, kebeles, defaultValues }: Hous
             </CardHeader>
             <CardContent className="h-64 p-0">
               <MapPicker
-                initialPosition={form.getValues('gps')}
-                onLocationSelect={(coords) => form.setValue('gps', coords)}
+                initialPosition={{lat: form.getValues('latitude'), lng: form.getValues('longitude')}}
+                onLocationSelect={(coords) => {
+                  form.setValue('latitude', coords.lat);
+                  form.setValue('longitude', coords.lng);
+                }}
               />
             </CardContent>
           </Card>
@@ -248,3 +284,5 @@ export function HousingForm({ subCities, woredas, kebeles, defaultValues }: Hous
     </form>
   );
 }
+
+    
