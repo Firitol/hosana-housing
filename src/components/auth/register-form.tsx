@@ -48,6 +48,7 @@ export function RegisterForm() {
           role: 'Kebele Officer', // Default role
           phoneNumber: '', // Not collected in this form
           isActive: true,
+          language: 'English',
           createdAt: serverTimestamp(),
           updatedAt: serverTimestamp(),
         };

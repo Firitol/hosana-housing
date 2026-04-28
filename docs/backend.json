@@ -37,6 +37,14 @@
           "type": "boolean",
           "description": "Indicates whether the user's account is active or inactive."
         },
+        "language": {
+          "type": "string",
+          "description": "The user's preferred language for the application.",
+          "enum": [
+            "English",
+            "Amharic"
+          ]
+        },
         "subCityId": {
           "type": "string",
           "description": "Reference to the SubCity this user is associated with, if applicable (e.g., for Sub-city officials). (Relationship: SubCity 1:N User)"

@@ -7,6 +7,7 @@ export type User = {
   role: 'Mayor' | 'Sub-city Official' | 'Woreda Administrator' | 'Kebele Officer';
   phoneNumber: string;
   isActive: boolean;
+  language?: 'English' | 'Amharic';
   subCityId?: string;
   woredaId?: string;
   kebeleId?: string;
