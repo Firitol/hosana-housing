@@ -46,17 +46,18 @@ export function NavLinks() {
         <SidebarMenu>
           {links.map((link) => (
             <SidebarMenuItem key={link.href}>
-              <Link href={link.href} legacyBehavior passHref>
-                <SidebarMenuButton
-                  isActive={pathname === link.href}
-                  tooltip={{
-                    children: link.label,
-                  }}
-                >
+              <SidebarMenuButton
+                asChild
+                isActive={pathname === link.href}
+                tooltip={{
+                  children: link.label,
+                }}
+              >
+                <Link href={link.href}>
                   <link.icon />
                   <span>{link.label}</span>
-                </SidebarMenuButton>
-              </Link>
+                </Link>
+              </SidebarMenuButton>
             </SidebarMenuItem>
           ))}
         </SidebarMenu>
@@ -64,12 +65,12 @@ export function NavLinks() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/login" legacyBehavior passHref>
-              <SidebarMenuButton tooltip={{children: 'Logout'}}>
+            <SidebarMenuButton asChild tooltip={{children: 'Logout'}}>
+              <Link href="/login">
                 <LogOut />
                 <span>Logout</span>
-              </SidebarMenuButton>
-            </Link>
+              </Link>
+            </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
