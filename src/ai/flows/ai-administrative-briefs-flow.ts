@@ -106,6 +106,6 @@ const administrativeBriefsFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await administrativeBriefsPrompt(input);
-    return output!;
+    return output ?? 'The AI brief could not be generated at this time. Please try again later.';
   }
 );
