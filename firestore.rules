@@ -1,0 +1,228 @@
+/**
+ * Core Philosophy:
+ * This ruleset implements a hierarchical Role-Based Access Control (RBAC) system combined with
+ * location-based permissions for a government housing management application. A user's access
+ * is determined by their assigned role (e.g., Mayor, Kebele Officer) and the specific
+ * administrative region (Sub-City, Woreda, Kebele) they are assigned to.
+ *
+ * Data Structure:
+ * The data is organized into top-level collections for primary entities like `/users`, `/houses`,
+ * `/subCities`, and `/auditLogs`. Administrative divisions are nested logically
+ * (e.g., `/subCities/{subCityId}/woredas/{woredaId}/kebeles/{kebeleId}`) to represent the
+ * real-world hierarchy.
+ *
+ * Key Security Decisions:
+ * - Denormalization for Authorization: User permissions (role and location IDs) are stored
+ *   directly on their `/users/{userId}` document. Critical location data (`subCityId`, `woredaId`,
+ *   `kebeleId`) is denormalized onto `/houses` documents. This makes rules fast and avoids
+ *   costly, complex `get()` calls to other documents during an authorization check.
+ * - Strict User Scoping: Users can only view and edit their own `/users/{userId}` document.
+ *   User listing is disabled to protect privacy.
+ * - Hierarchical Access: Higher-level officials (e.g., Mayor) have broader access than
+ *   lower-level ones (e.g., Kebele Officer), who are restricted to their assigned geographical area.
+ * - Immutable Audit Trail: The `/auditLogs` collection is read-only for authorized officials and
+ *   cannot be written to or deleted by any client, ensuring data integrity. It is assumed these
+ *   logs are created by a trusted backend process (e.g., Cloud Functions).
+ * - Default Deny: All operations are denied unless explicitly granted by a rule. All actions
+ *   require user authentication.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // --------------------------------------------------------------------
+    // Helper Functions
+    // --------------------------------------------------------------------
+
+    /**
+     * Verifies that a user is signed into the application.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the currently authenticated user is the owner of a document.
+     * @param userId The UID of the user to check against.
+     */
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    /**
+     * Verifies the document exists before allowing an update or delete.
+     */
+    function isExistingDoc() {
+      return resource != null;
+    }
+
+    /**
+     * Retrieves the authenticated user's profile data from the /users collection.
+     * This is the primary source of truth for a user's role and permissions.
+     */
+    function getUserData() {
+      // Note: This function should only be called if isSignedIn() is true.
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    /**
+     * Checks if the user has the 'Mayor' role.
+     */
+    function isMayor() {
+      return isSignedIn() && getUserData().role == 'Mayor';
+    }
+
+    /**
+     * Checks if the user has a 'Sub-city Official' role for a specific Sub-City.
+     * @param subCityId The ID of the Sub-City to check against the user's profile.
+     */
+    function isSubCityOfficialFor(subCityId) {
+      // Removed 'let userData = getUserData();' - direct calls to getUserData()
+      return isSignedIn() && getUserData().role == 'Sub-city Official' && getUserData().subCityId == subCityId;
+    }
+
+    /**
+     * Checks if the user has a 'Woreda Administrator' role for a specific Woreda.
+     * @param woredaId The ID of the Woreda to check against the user's profile.
+     */
+    function isWoredaAdminFor(woredaId) {
+      // Removed 'let userData = getUserData();' - direct calls to getUserData()
+      return isSignedIn() && getUserData().role == 'Woreda Administrator' && getUserData().woredaId == woredaId;
+    }
+    
+    /**
+     * Checks if a user has a role that allows managing administrative divisions.
+     * Hierarchical: Mayor > Sub-city Official > Woreda Administrator.
+     * @param subCityId The ID of the sub-city context.
+     * @param woredaId The ID of the woreda context.
+     */
+    function canManageKebele(subCityId, woredaId) {
+      return isMayor() || isSubCityOfficialFor(subCityId) || isWoredaAdminFor(woredaId);
+    }
+    
+    /**
+     * Checks if a user has permission to access a specific house record based on their
+     * role and assigned administrative location.
+     * @param houseData The data of the house document being accessed.
+     */
+    function canAccessHouse(houseData) {
+      // Removed 'let userData = getUserData();' and combined 'if' statements into a single return expression.
+      // Assumes isSignedIn() is true as per calling rules (e.g., `allow get: if isSignedIn() && canAccessHouse(...)`).
+      return getUserData().role == 'Mayor' ||
+             (getUserData().role == 'Sub-city Official' && getUserData().subCityId == houseData.subCityId) ||
+             (getUserData().role == 'Woreda Administrator' && getUserData().woredaId == houseData.woredaId) ||
+             (getUserData().role == 'Kebele Officer' && getUserData().kebeleId == houseData.kebeleId);
+    }
+    
+    /**
+     * Checks if the user has any valid role that permits them to view housing data.
+     * Used for granting list access, where individual document data is unavailable.
+     */
+    function hasHousingReadRole() {
+        // Removed 'let userRole = getUserData().role;' - direct call to getUserData().role
+        return isSignedIn() && getUserData().role in ['Mayor', 'Sub-city Official', 'Woreda Administrator', 'Kebele Officer'];
+    }
+
+    // --------------------------------------------------------------------
+    // User Profiles (/users)
+    // --------------------------------------------------------------------
+
+    /**
+     * @description A user can create, view, and update their own profile information.
+     * @path /users/{userId}
+     * @allow (create) A new user with UID 'user_abc' creating their own document at `/users/user_abc'.
+     * @deny (update) A user with UID 'user_abc' trying to update the document at `/users/user_xyz'.
+     * @principle Restricts access to a user's own data tree.
+     */
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isOwner(userId);
+    }
+
+    // --------------------------------------------------------------------
+    // Administrative Divisions (/subCities)
+    // --------------------------------------------------------------------
+
+    /**
+     * @description Sub-cities are readable by any signed-in user but can only be managed by a Mayor.
+     * @path /subCities/{subCityId}
+     * @allow (get) Any authenticated user can read a sub-city's details.
+     * @deny (create) A user with the 'Kebele Officer' role attempts to create a new sub-city.
+     * @principle Enforces high-level administrative control for creating top-level geographical boundaries.
+     */
+    match /subCities/{subCityId} {
+      allow get, list: if isSignedIn();
+      allow create: if isMayor();
+      allow update, delete: if isExistingDoc() && isMayor();
+    }
+
+    /**
+     * @description Woredas are readable by any signed-in user but managed only by a Mayor or the assigned Sub-city Official.
+     * @path /subCities/{subCityId}/woredas/{woredaId}
+     * @allow (create) A 'Sub-city Official' for 'subCity_A' creates a new woreda under `/subCities/subCity_A/woredas'.
+     * @deny (update) A 'Sub-city Official' for 'subCity_B' tries to update a woreda under `/subCities/subCity_A'.
+     * @principle Enforces hierarchical permissions and validates relational integrity.
+     */
+    match /subCities/{subCityId}/woredas/{woredaId} {
+      allow get, list: if isSignedIn();
+      allow create: if (isMayor() || isSubCityOfficialFor(subCityId)) && request.resource.data.subCityId == subCityId;
+      allow update: if isExistingDoc() && (isMayor() || isSubCityOfficialFor(subCityId)) && request.resource.data.subCityId == resource.data.subCityId;
+      allow delete: if isExistingDoc() && (isMayor() || isSubCityOfficialFor(subCityId));
+    }
+
+    /**
+     * @description Kebeles are readable by any signed-in user but managed by officials from the parent Woreda, Sub-city, or a Mayor.
+     * @path /subCities/{subCityId}/woredas/{woredaId}/kebeles/{kebeleId}
+     * @allow (create) A 'Woreda Administrator' for 'woreda_X' creates a new kebele under `.../woredas/woreda_X/kebeles`.
+     * @deny (delete) A 'Kebele Officer' attempts to delete a kebele document.
+     * @principle Enforces hierarchical permissions and validates relational integrity.
+     */
+    match /subCities/{subCityId}/woredas/{woredaId}/kebeles/{kebeleId} {
+      allow get, list: if isSignedIn();
+      allow create: if canManageKebele(subCityId, woredaId) && request.resource.data.woredaId == woredaId;
+      allow update: if isExistingDoc() && canManageKebele(subCityId, woredaId) && request.resource.data.woredaId == resource.data.woredaId;
+      allow delete: if isExistingDoc() && canManageKebele(subCityId, woredaId);
+    }
+
+    // --------------------------------------------------------------------
+    // Housing Records (/houses)
+    // --------------------------------------------------------------------
+
+    /**
+     * @description Housing records are the core data. Access is granted based on the user's role and assigned location.
+     * @path /houses/{houseId}
+     * @allow (get) A 'Kebele Officer' assigned to 'kebele_123' reads a house document where `kebeleId` is 'kebele_123'.
+     * @deny (update) A 'Kebele Officer' assigned to 'kebele_123' tries to update a house in 'kebele_456'.
+     * @principle Enforces fine-grained, location-based access control using denormalized data on the resource.
+     */
+    match /houses/{houseId} {
+      allow get: if isSignedIn() && canAccessHouse(resource.data);
+      allow list: if hasHousingReadRole();
+      allow create: if isSignedIn() && request.resource.data.createdBy == request.auth.uid;
+      allow update: if isExistingDoc() && (canAccessHouse(resource.data) || isOwner(resource.data.createdBy)) && request.resource.data.createdBy == resource.data.createdBy;
+      allow delete: if isExistingDoc() && (canAccessHouse(resource.data) || isOwner(resource.data.createdBy));
+    }
+    
+    // --------------------------------------------------------------------
+    // Audit Logs (/auditLogs)
+    // --------------------------------------------------------------------
+    
+    /**
+     * @description Audit logs are an immutable, read-only record of system activity, viewable only by high-level officials.
+     * @path /auditLogs/{auditLogId}
+     * @allow (get) A user with the 'Mayor' role reads an audit log entry.
+     * @deny (create) Any client-side user attempts to create a new audit log entry.
+     * @principle Protects data integrity by making critical history logs immutable from the client.
+     */
+    match /auditLogs/{auditLogId} {
+      allow get, list: if isMayor() || (isSignedIn() && getUserData().role == 'Sub-city Official');
+      allow create: if false;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+  }
+}
