@@ -24,13 +24,13 @@ export default function HousingPage() {
     const subCitiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'subCities') : null, [firestore]);
     const { data: subCities, isLoading: isLoadingSubCities } = useCollection(subCitiesQuery);
 
-    const woredasQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'woredas') : null, [firestore]);
-    const { data: woredas, isLoading: isLoadingWoredas } = useCollection(woredasQuery);
-    
     const kebelesQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'kebeles') : null, [firestore]);
     const { data: kebeles, isLoading: isLoadingKebeles } = useCollection(kebelesQuery);
+    
+    const ketenasQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'ketenas') : null, [firestore]);
+    const { data: ketenas, isLoading: isLoadingKetenas } = useCollection(ketenasQuery);
 
-    const isLoading = isLoadingHouses || isLoadingSubCities || isLoadingWoredas || isLoadingKebeles;
+    const isLoading = isLoadingHouses || isLoadingSubCities || isLoadingKebeles || isLoadingKetenas;
 
     return (
         <div className="space-y-4">
@@ -39,8 +39,8 @@ export default function HousingPage() {
                 <div className="flex items-center gap-2">
                     <CsvImporter
                         subCities={subCities || []}
-                        woredas={woredas || []}
                         kebeles={kebeles || []}
+                        ketenas={ketenas || []}
                     />
                     <Link href="/dashboard/housing/new">
                         <Button>Add New House</Button>
@@ -59,25 +59,25 @@ export default function HousingPage() {
                 </Select>
                 <Select>
                     <SelectTrigger className="w-full md:w-[180px]">
-                        <SelectValue placeholder="Filter by Woreda" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {woredas?.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
-                    </SelectContent>
-                </Select>
-                <Select>
-                    <SelectTrigger className="w-full md:w-[180px]">
                         <SelectValue placeholder="Filter by Kebele" />
                     </SelectTrigger>
                     <SelectContent>
                         {kebeles?.map(k => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
                     </SelectContent>
                 </Select>
+                <Select>
+                    <SelectTrigger className="w-full md:w-[180px]">
+                        <SelectValue placeholder="Filter by Ketena" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {ketenas?.map(k => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
+                    </SelectContent>
+                </Select>
             </div>
             {isLoading ? (
                 <div className="text-center p-8">Loading data...</div>
             ) : (
-                <DataTable data={houses || []} subCities={subCities || []} woredas={woredas || []} kebeles={kebeles || []} />
+                <DataTable data={houses || []} subCities={subCities || []} kebeles={kebeles || []} ketenas={ketenas || []} />
             )}
         </div>
     );

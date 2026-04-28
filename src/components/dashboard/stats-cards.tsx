@@ -4,7 +4,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Home, Users, MapPin } from 'lucide-react';
+import { Home, Users, MapPin, Building2 } from 'lucide-react';
 import { getDashboardStats } from '@/lib/data';
 
 export function StatsCards() {
@@ -27,7 +27,7 @@ export function StatsCards() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">Sub-Cities</CardTitle>
-          <MapPin className="h-4 w-4 text-muted-foreground" />
+          <Building2 className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">{Object.keys(stats.housesBySubcity).length}</div>
@@ -38,11 +38,11 @@ export function StatsCards() {
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Woredas</CardTitle>
+          <CardTitle className="text-sm font-medium">Kebeles</CardTitle>
           <MapPin className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{Object.keys(stats.housesByWoreda).length}</div>
+          <div className="text-2xl font-bold">{Object.keys(stats.housesByKebele).length}</div>
            <p className="text-xs text-muted-foreground">
             Across all sub-cities
           </p>

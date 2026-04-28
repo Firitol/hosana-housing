@@ -20,17 +20,17 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { House, SubCity, Woreda, Kebele } from '@/lib/definitions';
+import { House, SubCity, Kebele, Ketena } from '@/lib/definitions';
 import { DataTableRowActions } from './data-table-row-actions';
 
 interface DataTableProps {
   data: House[];
   subCities: SubCity[];
-  woredas: Woreda[];
   kebeles: Kebele[];
+  ketenas: Ketena[];
 }
 
-export function DataTable({ data, subCities, woredas, kebeles }: DataTableProps) {
+export function DataTable({ data, subCities, kebeles, ketenas }: DataTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   
   const columns: ColumnDef<House>[] = [
@@ -51,19 +51,19 @@ export function DataTable({ data, subCities, woredas, kebeles }: DataTableProps)
       },
     },
     {
-      accessorKey: 'woredaId',
-      header: 'Woreda',
+      accessorKey: 'kebeleId',
+      header: 'Kebele',
       cell: ({ row }) => {
-        const woreda = woredas.find(w => w.id === row.original.woredaId);
-        return woreda ? woreda.name : 'N/A';
+        const kebele = kebeles.find(k => k.id === row.original.kebeleId);
+        return kebele ? kebele.name : 'N/A';
       },
     },
     {
-        accessorKey: 'kebeleId',
-        header: 'Kebele',
+        accessorKey: 'ketenaId',
+        header: 'Ketena',
         cell: ({ row }) => {
-          const kebele = kebeles.find(k => k.id === row.original.kebeleId);
-          return kebele ? kebele.name : 'N/A';
+          const ketena = ketenas.find(k => k.id === row.original.ketenaId);
+          return ketena ? ketena.name : 'N/A';
         },
       },
     {
@@ -163,5 +163,3 @@ export function DataTable({ data, subCities, woredas, kebeles }: DataTableProps)
     </div>
   );
 }
-
-    

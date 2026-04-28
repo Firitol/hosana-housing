@@ -9,7 +9,6 @@ export type User = {
   isActive: boolean;
   language?: 'English' | 'Amharic';
   subCityId?: string;
-  woredaId?: string;
   kebeleId?: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -22,18 +21,20 @@ export type SubCity = {
   updatedAt: Timestamp;
 };
 
-export type Woreda = {
+export type Kebele = {
   id: string;
   name: string;
   subCityId: string;
+  latitude: number;
+  longitude: number;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 };
 
-export type Kebele = {
+export type Ketena = {
   id: string;
   name: string;
-  woredaId: string;
+  kebeleId: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
 };
@@ -50,8 +51,8 @@ export type House = {
   latitude: number;
   longitude: number;
   subCityId: string;
-  woredaId: string;
   kebeleId: string;
+  ketenaId: string;
   createdBy: string;
   createdAt: Timestamp;
   updatedAt: Timestamp;
@@ -67,5 +68,3 @@ export type AuditLog = {
   recordId?: string;
   description: string;
 };
-
-    

@@ -21,11 +21,10 @@
         },
         "role": {
           "type": "string",
-          "description": "The assigned role of the user, determining their access and permissions within the system. (Possible values: Mayor, Sub-city Official, Woreda Administrator, Kebele Officer)",
+          "description": "The assigned role of the user, determining their access and permissions within the system. (Possible values: Mayor, Sub-city Official, Kebele Officer)",
           "enum": [
             "Mayor",
             "Sub-city Official",
-            "Woreda Administrator",
             "Kebele Officer"
           ]
         },
@@ -48,10 +47,6 @@
         "subCityId": {
           "type": "string",
           "description": "Reference to the SubCity this user is associated with, if applicable (e.g., for Sub-city officials). (Relationship: SubCity 1:N User)"
-        },
-        "woredaId": {
-          "type": "string",
-          "description": "Reference to the Woreda this user is associated with, if applicable (e.g., for Woreda administrators). (Relationship: Woreda 1:N User)"
         },
         "kebeleId": {
           "type": "string",
@@ -111,48 +106,11 @@
         "updatedAt"
       ]
     },
-    "Woreda": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Woreda",
-      "type": "object",
-      "description": "Represents a woreda, an administrative division nested within a SubCity in the Hosana City hierarchy.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the Woreda entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the woreda."
-        },
-        "subCityId": {
-          "type": "string",
-          "description": "Reference to the SubCity to which this woreda belongs. (Relationship: SubCity 1:N Woreda)"
-        },
-        "createdAt": {
-          "type": "string",
-          "description": "Timestamp indicating when the woreda record was created.",
-          "format": "date-time"
-        },
-        "updatedAt": {
-          "type": "string",
-          "description": "Timestamp indicating the last time the woreda record was updated.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "subCityId",
-        "createdAt",
-        "updatedAt"
-      ]
-    },
     "Kebele": {
       "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Kebele",
       "type": "object",
-      "description": "Represents a kebele, the lowest administrative division, nested within a Woreda in the Hosana City hierarchy.",
+      "description": "Represents a kebele, an administrative division nested within a SubCity.",
       "properties": {
         "id": {
           "type": "string",
@@ -162,9 +120,17 @@
           "type": "string",
           "description": "The name of the kebele."
         },
-        "woredaId": {
+        "subCityId": {
           "type": "string",
-          "description": "Reference to the Woreda to which this kebele belongs. (Relationship: Woreda 1:N Kebele)"
+          "description": "Reference to the SubCity to which this kebele belongs."
+        },
+        "latitude": {
+          "type": "number",
+          "description": "The geographical latitude of the kebele's center point."
+        },
+        "longitude": {
+          "type": "number",
+          "description": "The geographical longitude of the kebele's center point."
         },
         "createdAt": {
           "type": "string",
@@ -180,7 +146,46 @@
       "required": [
         "id",
         "name",
-        "woredaId",
+        "subCityId",
+        "latitude",
+        "longitude",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "Ketena": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Ketena",
+      "type": "object",
+      "description": "Represents a ketena (neighborhood), the lowest administrative division, nested within a Kebele.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Ketena entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the ketena."
+        },
+        "kebeleId": {
+          "type": "string",
+          "description": "Reference to the Kebele to which this ketena belongs."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp indicating when the ketena record was created.",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp indicating the last time the ketena record was updated.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kebeleId",
         "createdAt",
         "updatedAt"
       ]
@@ -201,15 +206,15 @@
         },
         "subCityId": {
           "type": "string",
-          "description": "Reference to the SubCity where the house is located. (Relationship: SubCity 1:N House)"
-        },
-        "woredaId": {
-          "type": "string",
-          "description": "Reference to the Woreda where the house is located. (Relationship: Woreda 1:N House)"
+          "description": "Reference to the SubCity where the house is located."
         },
         "kebeleId": {
           "type": "string",
-          "description": "Reference to the Kebele where the house is located. (Relationship: Kebele 1:N House)"
+          "description": "Reference to the Kebele where the house is located."
+        },
+        "ketenaId": {
+          "type": "string",
+          "description": "Reference to the Ketena where the house is located."
         },
         "householderName": {
           "type": "string",
@@ -250,7 +255,7 @@
         },
         "createdBy": {
           "type": "string",
-          "description": "Reference to the User who created this housing record. (Relationship: User 1:N House)"
+          "description": "Reference to the User who created this housing record."
         },
         "createdAt": {
           "type": "string",
@@ -267,8 +272,8 @@
         "id",
         "houseNumber",
         "subCityId",
-        "woredaId",
         "kebeleId",
+        "ketenaId",
         "householderName",
         "phoneNumber",
         "familySize",
@@ -293,7 +298,7 @@
         },
         "userId": {
           "type": "string",
-          "description": "Reference to the User who performed the action. (Relationship: User 1:N AuditLog)"
+          "description": "Reference to the User who performed the action."
         },
         "action": {
           "type": "string",
@@ -342,13 +347,7 @@
           "schema": {
             "$ref": "#/backend/entities/User"
           },
-          "description": "Stores user profiles within the system. Each document includes the user's role and associated administrative IDs (`subCityId`, `woredaId`, `kebeleId`) for DBAC (Database Access Control), enabling role and location-based authorization checks directly from the user's profile data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The unique identifier of the user, typically provided by Firebase Authentication (request.auth.uid)."
-            }
-          ]
+          "description": "Stores user profiles. Includes role and associated `subCityId` or `kebeleId` for role-based and location-based access control."
         }
       },
       {
@@ -358,57 +357,27 @@
           "schema": {
             "$ref": "#/backend/entities/SubCity"
           },
-          "description": "Represents the top-level administrative divisions. These documents are generally accessible for lookup by relevant users and manageable by higher-level officials (Mayor, Sub-city officials).",
-          "params": [
-            {
-              "name": "subCityId",
-              "description": "The unique identifier of the SubCity."
-            }
-          ]
+          "description": "Top-level administrative divisions."
         }
       },
       {
-        "path": "/subCities/{subCityId}/woredas/{woredaId}",
-        "definition": {
-          "entityName": "Woreda",
-          "schema": {
-            "$ref": "#/backend/entities/Woreda"
-          },
-          "description": "Represents woredas, administrative divisions nested within a SubCity. Each Woreda document includes a denormalized 'subCityId' field for Authorization Independence, allowing rules to verify its parent SubCity directly without additional 'get()' calls. Accessible for lookup, and manageable by Sub-city officials and Woreda administrators within their scope.",
-          "params": [
-            {
-              "name": "subCityId",
-              "description": "The unique identifier of the parent SubCity."
-            },
-            {
-              "name": "woredaId",
-              "description": "The unique identifier of the Woreda."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/subCities/{subCityId}/woredas/{woredaId}/kebeles/{kebeleId}",
+        "path": "/subCities/{subCityId}/kebeles/{kebeleId}",
         "definition": {
           "entityName": "Kebele",
           "schema": {
             "$ref": "#/backend/entities/Kebele"
           },
-          "description": "Represents kebeles, the lowest administrative division, nested within a Woreda. Each Kebele document includes denormalized 'subCityId' and 'woredaId' fields for full Authorization Independence, enabling rules to verify the complete administrative path without 'get()' calls on parent documents. Accessible for lookup, and manageable by Woreda administrators and Kebele officers within their scope.",
-          "params": [
-            {
-              "name": "subCityId",
-              "description": "The unique identifier of the parent SubCity."
-            },
-            {
-              "name": "woredaId",
-              "description": "The unique identifier of the parent Woreda."
-            },
-            {
-              "name": "kebeleId",
-              "description": "The unique identifier of the Kebele."
-            }
-          ]
+          "description": "Kebeles nested within a SubCity. Each document includes denormalized 'subCityId'."
+        }
+      },
+      {
+        "path": "/subCities/{subCityId}/kebeles/{kebeleId}/ketenas/{ketenaId}",
+        "definition": {
+          "entityName": "Ketena",
+          "schema": {
+            "$ref": "#/backend/entities/Ketena"
+          },
+          "description": "Ketenas nested within a Kebele. Includes denormalized 'subCityId' and 'kebeleId' for efficient queries."
         }
       },
       {
@@ -418,13 +387,7 @@
           "schema": {
             "$ref": "#/backend/entities/House"
           },
-          "description": "The primary collection for all housing records. Each document includes denormalized 'subCityId', 'woredaId', and 'kebeleId' fields. This is CRITICAL for Authorization Independence and QAPs, enabling atomic rule checks for location-based access without requiring 'get()' calls on administrative hierarchy documents. The 'createdBy' field facilitates ownership-based access control.",
-          "params": [
-            {
-              "name": "houseId",
-              "description": "The unique identifier of the house record."
-            }
-          ]
+          "description": "Primary collection for housing records. Each document includes denormalized 'subCityId', 'kebeleId', and 'ketenaId' for efficient, secure filtering."
         }
       },
       {
@@ -434,18 +397,9 @@
           "schema": {
             "$ref": "#/backend/entities/AuditLog"
           },
-          "description": "Records all significant user actions (create, update, delete) on data entities for accountability and historical tracking. Access is typically restricted to higher-level officials (Mayor, Sub-city officials) for read-only purposes.",
-          "params": [
-            {
-              "name": "auditLogId",
-              "description": "The unique identifier of the audit log entry."
-            }
-          ]
+          "description": "Records all significant user actions for accountability."
         }
       }
-    ],
-    "reasoning": "The Firestore data structure for the Hosana City Housing Management System is designed following the core principles of Authorization Independence, Structural Segregation, and standardized Access Modeling. This approach minimizes complexity in security rules, enhances debuggability, and ensures scalability.\n\n**Authorization Independence:** This is achieved primarily through strategic denormalization. For instance:\n*   **User Documents (`/users/{userId}`):** The user's `role` and associated administrative IDs (`subCityId`, `woredaId`, `kebeleId`) are stored directly on their user profile document. This enables security rules to fetch the user's authorization context with a single `get()` operation on their own profile (`get(/users/$(request.auth.uid))`) and then perform all subsequent authorization checks against `resource.data` without further hierarchical `get()` calls. This adheres to the DBAC mandate (roles in DB) while still enabling robust authorization checks.\n*   **Administrative Hierarchy (`/subCities/{subCityId}/woredas/{woredaId}/kebeles/{kebeleId}`):** Each Woreda document explicitly includes `subCityId`, and each Kebele document explicitly includes both `subCityId` and `woredaId` (denormalizing from its parent Woreda's parent SubCity). This prevents rules from needing to `get()` parent documents to establish the full administrative path, enabling atomic operations and simplifying rule logic for administrative division access.\n*   **House Documents (`/houses/{houseId}`):** Crucially, every `House` document includes denormalized `subCityId`, `woredaId`, and `kebeleId`. This allows any rule checking access to a house (e.g., a Kebele officer accessing houses in their kebele) to directly compare `request.auth.kebeleId` (from their user profile) with `resource.data.kebeleId` without requiring any `get()` operations on the administrative hierarchy documents. This is a foundational aspect for secure and performant rules.\n\n**QAPs (Rules are not Filters) and Structural Segregation:**\n*   **Homogeneous Security Posture:** Each top-level collection (`/users`, `/subCities`, `/houses`, `/auditLogs`) or sub-collection (`/subCities/{subCityId}/woredas`, `/subCities/{subCityId}/woredas/{woredaId}/kebeles`) is designed to contain documents with uniform security requirements. For example, all documents in `/houses` represent housing records that require location-based access control. This avoids mixing data with different access needs, simplifying rule sets.\n*   **Queryable Authorization Fields:** Because `subCityId`, `woredaId`, and `kebeleId` are denormalized into `House` documents, clients can issue queries like `db.collection('houses').where('kebeleId', '==', userKebeleId)`. Firestore security rules can then efficiently validate these queries by ensuring that the `resource.data.kebeleId` matches the `request.auth.kebeleId` (obtained from the user's profile), thus enforcing QAPs by ensuring no unauthorized data is returned or accessed. The structure enables rules to assert *all* retrieved documents satisfy the authorization criteria, rather than attempting to filter results after retrieval."
+    ]
   }
 }
-
-    

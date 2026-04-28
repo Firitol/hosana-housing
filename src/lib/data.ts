@@ -1,58 +1,46 @@
-import { House, SubCity, Woreda, Kebele, User, AuditLog } from '@/lib/definitions';
+import { House, SubCity, Kebele, Ketena, User, AuditLog } from '@/lib/definitions';
 import { AdministrativeBriefsInput } from '@/ai/flows/ai-administrative-briefs-flow';
 
 // --- REALISTIC SEED DATA GENERATION ---
 
 // 1. Administrative Divisions
 const subCitiesMock: Omit<SubCity, 'createdAt' | 'updatedAt'>[] = [
-  { id: 'sc-1', name: 'Hosaena Central' },
-  { id: 'sc-2', name: 'Lemo' },
-  { id: 'sc-3', name: 'Misha' },
-];
-
-const woredasMock: Omit<Woreda, 'createdAt' | 'updatedAt'>[] = [
-  // Hosaena Central Woredas
-  { id: 'wd-1', name: 'Woreda 01', subCityId: 'sc-1' },
-  { id: 'wd-2', name: 'Woreda 02', subCityId: 'sc-1' },
-  { id: 'wd-3', name: 'Woreda 03', subCityId: 'sc-1' },
-  { id: 'wd-4', name: 'Woreda 04', subCityId: 'sc-1' },
-  // Lemo Woredas
-  { id: 'wd-5', name: 'Woreda 05', subCityId: 'sc-2' },
-  { id: 'wd-6', name: 'Woreda 06', subCityId: 'sc-2' },
-  { id: 'wd-7', name: 'Woreda 07', subCityId: 'sc-2' },
-  // Misha Woredas
-  { id: 'wd-8', name: 'Woreda 08', subCityId: 'sc-3' },
-  { id: 'wd-9', name: 'Woreda 09', subCityId: 'sc-3' },
-  { id: 'wd-10', name: 'Woreda 10', subCityId: 'sc-3' },
+  { id: 'sc-1', name: 'Gofer Meda' },
+  { id: 'sc-2', name: 'Sech Duna' },
+  { id: 'sc-3', name: 'Addis' },
 ];
 
 const kebelesMock: Omit<Kebele, 'createdAt' | 'updatedAt'>[] = [
-  // Woreda 01 Kebeles
-  { id: 'kb-1', name: 'Kebele A', woredaId: 'wd-1' },
-  { id: 'kb-2', name: 'Kebele B', woredaId: 'wd-1' },
-  // Woreda 02 Kebeles
-  { id: 'kb-3', name: 'Kebele C', woredaId: 'wd-2' },
-  // Woreda 03 Kebeles
-  { id: 'kb-4', name: 'Kebele D', woredaId: 'wd-3' },
-  { id: 'kb-5', name: 'Kebele E', woredaId: 'wd-3' },
-  // Woreda 04 Kebeles
-  { id: 'kb-6', name: 'Kebele F', woredaId: 'wd-4' },
-  // Woreda 05 Kebeles
-  { id: 'kb-7', name: 'Kebele G', woredaId: 'wd-5' },
-  { id: 'kb-8', name: 'Kebele H', woredaId: 'wd-5' },
-  // Woreda 06 Kebeles
-  { id: 'kb-9', name: 'Kebele I', woredaId: 'wd-6' },
-  // Woreda 07 Kebeles
-  { id: 'kb-10', name: 'Kebele J', woredaId: 'wd-7' },
-  { id: 'kb-11', name: 'Kebele K', woredaId: 'wd-7' },
-  // Woreda 08 Kebeles
-  { id: 'kb-12', name: 'Kebele L', woredaId: 'wd-8' },
-  // Woreda 09 Kebeles
-  { id: 'kb-13', name: 'Kebele M', woredaId: 'wd-9' },
-  { id: 'kb-14', name: 'Kebele N', woredaId: 'wd-9' },
-  // Woreda 10 Kebeles
-  { id: 'kb-15', name: 'Kebele O', woredaId: 'wd-10' },
+  // Gofer Meda Kebeles
+  { id: 'kb-1', name: 'Arada', subCityId: 'sc-1', latitude: 7.56, longitude: 37.85 },
+  { id: 'kb-2', name: 'Bobicho', subCityId: 'sc-1', latitude: 7.57, longitude: 37.86 },
+  // Sech Duna Kebeles
+  { id: 'kb-3', name: 'Heto', subCityId: 'sc-2', latitude: 7.55, longitude: 37.90 },
+  { id: 'kb-4', name: 'Sech Duna Kebele', subCityId: 'sc-2', latitude: 7.54, longitude: 37.91 },
+  // Addis Kebeles
+  { id: 'kb-5', name: 'Lich Amba', subCityId: 'sc-3', latitude: 7.60, longitude: 37.95 },
+  { id: 'kb-6', name: 'Jello Naramo', subCityId: 'sc-3', latitude: 7.61, longitude: 37.96 },
 ];
+
+const ketenasMock: Omit<Ketena, 'createdAt' | 'updatedAt'>[] = [
+  // Arada Ketenas
+  { id: 'kt-1', name: 'Ketena 1', kebeleId: 'kb-1' },
+  { id: 'kt-2', name: 'Ketena 2', kebeleId: 'kb-1' },
+  // Bobicho Ketenas
+  { id: 'kt-3', name: 'Ketena 3', kebeleId: 'kb-2' },
+  // Heto Ketenas
+  { id: 'kt-4', name: 'Ketena 4', kebeleId: 'kb-3' },
+  { id: 'kt-5', name: 'Ketena 5', kebeleId: 'kb-3' },
+  // Sech Duna Ketenas
+  { id: 'kt-6', name: 'Ketena 6', kebeleId: 'kb-4' },
+  // Lich Amba Ketenas
+  { id: 'kt-7', name: 'Ketena 7', kebeleId: 'kb-5' },
+  { id: 'kt-8', name: 'Ketena 8', kebeleId: 'kb-5' },
+  // Jello Naramo Ketenas
+  { id: 'kt-9', name: 'Ketena 9', kebeleId: 'kb-6' },
+  { id: 'kt-10', name: 'Ketena 10', kebeleId: 'kb-6' },
+];
+
 
 // 2. Data for Houses
 const firstNames = ['Abebe', 'Lelisa', 'Fatuma', 'Mekdes', 'Yohannes', 'Birtukan', 'Tsegaye', 'Freweini', 'Haile', 'Sofia', 'Getachew', 'Zenebech', 'Dawit', 'Meseret', 'Kassahun', 'Tigist'];
@@ -63,17 +51,18 @@ const houseTypes: House['houseType'][] = ['Owned', 'Rented', 'Government'];
 const getRandomItem = <T>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 const generateRandomDate = (start: Date, end: Date) => new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString();
 const generatePhoneNumber = () => `09${Math.floor(10000000 + Math.random() * 90000000)}`;
-const generateCoordinates = () => ({
-  lat: 7.5 + Math.random() * 0.2, // Latitude: 7.5 - 7.7
-  lng: 37.8 + Math.random() * 0.3, // Longitude: 37.8 - 38.1
+
+const generateCoordinates = (baseLat: number, baseLng: number) => ({
+  lat: baseLat + (Math.random() - 0.5) * 0.005, // within ~500m of kebele center
+  lng: baseLng + (Math.random() - 0.5) * 0.005,
 });
 
 // 3. Generate House Records
-const housesMock: House[] = Array.from({ length: 75 }, (_, i) => {
-  const kebele = getRandomItem(kebelesMock);
-  const woreda = woredasMock.find(w => w.id === kebele.woredaId)!;
-  const subCity = subCitiesMock.find(sc => sc.id === woreda.subCityId)!;
-  const coords = generateCoordinates();
+const housesMock: House[] = Array.from({ length: 80 }, (_, i) => {
+  const ketena = getRandomItem(ketenasMock);
+  const kebele = kebelesMock.find(k => k.id === ketena.kebeleId)!;
+  const subCity = subCitiesMock.find(sc => sc.id === kebele.subCityId)!;
+  const coords = generateCoordinates(kebele.latitude, kebele.longitude);
 
   return {
     id: `${1000 + i}`,
@@ -82,12 +71,12 @@ const housesMock: House[] = Array.from({ length: 75 }, (_, i) => {
     phoneNumber: generatePhoneNumber(),
     familySize: Math.floor(Math.random() * 8) + 1,
     houseType: getRandomItem(houseTypes),
-    addressDescription: `Near ${getRandomItem(['market', 'school', 'church', 'clinic'])} in ${kebele.name}`,
+    addressDescription: `Near ${getRandomItem(['market', 'school', 'church', 'clinic'])} in ${ketena.name}`,
     latitude: coords.lat,
     longitude: coords.lng,
     subCityId: subCity.id,
-    woredaId: woreda.id,
     kebeleId: kebele.id,
+    ketenaId: ketena.id,
     // @ts-ignore
     createdAt: generateRandomDate(new Date(2023, 0, 1), new Date()),
     // @ts-ignore
@@ -132,15 +121,15 @@ export const getDashboardStats = (): AdministrativeBriefsInput['dashboardStatist
     return acc;
   }, {} as Record<string, number>);
   
-  const housesByWoreda = housesMock.reduce((acc, house) => {
-    const woredaName = woredasMock.find(w => w.id === house.woredaId)?.name || 'Unknown';
-    acc[woredaName] = (acc[woredaName] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
-
   const housesByKebele = housesMock.reduce((acc, house) => {
     const kebeleName = kebelesMock.find(k => k.id === house.kebeleId)?.name || 'Unknown';
     acc[kebeleName] = (acc[kebeleName] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
+  const housesByKetena = housesMock.reduce((acc, house) => {
+    const ketenaName = ketenasMock.find(k => k.id === house.ketenaId)?.name || 'Unknown';
+    acc[ketenaName] = (acc[ketenaName] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
 
@@ -149,7 +138,8 @@ export const getDashboardStats = (): AdministrativeBriefsInput['dashboardStatist
   return {
     totalHouses: housesMock.length,
     housesBySubcity,
-    housesByWoreda,
+    // @ts-ignore
+    housesByWoreda: {}, // Kept for schema compatibility, but empty
     housesByKebele,
     recentlyAddedHouses: sortedHouses.slice(0, 5).map(h => ({ houseNumber: h.houseNumber, householderName: h.householderName, createdAt: h.createdAt as string })),
     recentlyUpdatedHouses: [...housesMock].sort((a,b) => new Date(b.updatedAt as string).getTime() - new Date(a.updatedAt as string).getTime()).slice(0, 5).map(h => ({ houseNumber: h.houseNumber, householderName: h.householderName, updatedAt: h.updatedAt as string })),

@@ -18,22 +18,22 @@ import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useUser, addDocumentNonBlocking } from '@/firebase';
 import { collection, serverTimestamp } from 'firebase/firestore';
 import { Upload } from 'lucide-react';
-import type { SubCity, Woreda, Kebele } from '@/lib/definitions';
+import type { SubCity, Kebele, Ketena } from '@/lib/definitions';
 
 // Define expected CSV headers
 const EXPECTED_HEADERS = [
   'houseNumber', 'householderName', 'phoneNumber', 'nationalId',
   'familySize', 'houseType', 'addressDescription', 'latitude', 'longitude',
-  'subCityName', 'woredaName', 'kebeleName'
+  'subCityName', 'kebeleName', 'ketenaName'
 ];
 
 interface CsvImporterProps {
   subCities: SubCity[];
-  woredas: Woreda[];
   kebeles: Kebele[];
+  ketenas: Ketena[];
 }
 
-export function CsvImporter({ subCities, woredas, kebeles }: CsvImporterProps) {
+export function CsvImporter({ subCities, kebeles, ketenas }: CsvImporterProps) {
   const [file, setFile] = useState<File | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -82,10 +82,10 @@ export function CsvImporter({ subCities, woredas, kebeles }: CsvImporterProps) {
         for (const row of results.data as any[]) {
           try {
             const subCity = subCities.find(sc => sc.name === row.subCityName);
-            const woreda = woredas.find(w => w.name === row.woredaName && w.subCityId === subCity?.id);
-            const kebele = kebeles.find(k => k.name === row.kebeleName && k.woredaId === woreda?.id);
+            const kebele = kebeles.find(k => k.name === row.kebeleName && k.subCityId === subCity?.id);
+            const ketena = ketenas.find(kt => kt.name === row.ketenaName && kt.kebeleId === kebele?.id);
 
-            if (!subCity || !woreda || !kebele) {
+            if (!subCity || !kebele || !ketena) {
                 errorCount++;
                 console.warn('Could not find matching administrative division for row:', row);
                 continue;
@@ -102,8 +102,8 @@ export function CsvImporter({ subCities, woredas, kebeles }: CsvImporterProps) {
               latitude: parseFloat(row.latitude),
               longitude: parseFloat(row.longitude),
               subCityId: subCity.id,
-              woredaId: woreda.id,
               kebeleId: kebele.id,
+              ketenaId: ketena.id,
               createdBy: user.uid,
               createdAt: serverTimestamp(),
               updatedAt: serverTimestamp(),
@@ -154,7 +154,7 @@ export function CsvImporter({ subCities, woredas, kebeles }: CsvImporterProps) {
             <Input id="csv-file" type="file" accept=".csv" onChange={handleFileChange} className="col-span-3" />
           </div>
           <p className="text-xs text-muted-foreground px-1">
-            Required columns: houseNumber, householderName, phoneNumber, nationalId, familySize, houseType, addressDescription, latitude, longitude, subCityName, woredaName, kebeleName.
+            Required columns: houseNumber, householderName, phoneNumber, nationalId, familySize, houseType, addressDescription, latitude, longitude, subCityName, kebeleName, ketenaName.
           </p>
         </div>
         <DialogFooter>

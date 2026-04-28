@@ -12,13 +12,13 @@ import { getDashboardStats } from '@/lib/data';
 
 export function OverviewCharts() {
   const stats = getDashboardStats();
-  const data = Object.entries(stats.housesBySubcity).map(([name, total]) => ({ name, total }));
+  const data = Object.entries(stats.housesByKebele).map(([name, total]) => ({ name, total }));
 
   return (
     <Card className="col-span-1 lg:col-span-2">
       <CardHeader>
         <CardTitle>Overview</CardTitle>
-        <CardDescription>Housing distribution by Sub-City.</CardDescription>
+        <CardDescription>Housing distribution by Kebele.</CardDescription>
       </CardHeader>
       <CardContent className="pl-2">
         <ResponsiveContainer width="100%" height={350}>
@@ -29,6 +29,7 @@ export function OverviewCharts() {
               fontSize={12}
               tickLine={false}
               axisLine={false}
+              interval={0}
             />
             <YAxis
               stroke="hsl(var(--muted-foreground))"

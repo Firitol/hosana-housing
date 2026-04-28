@@ -23,7 +23,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import type { House, SubCity, Woreda, Kebele } from '@/lib/definitions';
+import type { House, SubCity, Kebele, Ketena } from '@/lib/definitions';
 import { MapPicker } from './map-picker';
 import { useFirestore, useUser, addDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase';
 import { collection, doc, serverTimestamp } from 'firebase/firestore';
@@ -37,8 +37,8 @@ const formSchema = z.object({
   houseType: z.enum(['Owned', 'Rented', 'Government']),
   addressDescription: z.string().min(5, 'Address is too short'),
   subCityId: z.string().nonempty('Sub-City is required'),
-  woredaId: z.string().nonempty('Woreda is required'),
   kebeleId: z.string().nonempty('Kebele is required'),
+  ketenaId: z.string().nonempty('Ketena is required'),
   houseNumber: z.string().nonempty('House number is required'),
   latitude: z.number(),
   longitude: z.number(),
@@ -48,12 +48,12 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface HousingFormProps {
   subCities: SubCity[];
-  woredas: Woreda[];
   kebeles: Kebele[];
+  ketenas: Ketena[];
   defaultValues?: House;
 }
 
-export function HousingForm({ subCities, woredas, kebeles, defaultValues }: HousingFormProps) {
+export function HousingForm({ subCities, kebeles, ketenas, defaultValues }: HousingFormProps) {
   const router = useRouter();
   const firestore = useFirestore();
   const { user } = useUser();
@@ -65,46 +65,46 @@ export function HousingForm({ subCities, woredas, kebeles, defaultValues }: Hous
       ...defaultValues,
       familySize: Number(defaultValues.familySize)
     } : {
-      latitude: 9.005401,
-      longitude: 38.763611
+      latitude: 7.56, // Default to Hosana center
+      longitude: 37.85
     }
   });
 
-  const [filteredWoredas, setFilteredWoredas] = useState<Woreda[]>([]);
   const [filteredKebeles, setFilteredKebeles] = useState<Kebele[]>([]);
+  const [filteredKetenas, setFilteredKetenas] = useState<Ketena[]>([]);
   
   const selectedSubCityId = form.watch('subCityId');
-  const selectedWoredaId = form.watch('woredaId');
+  const selectedKebeleId = form.watch('kebeleId');
 
   useEffect(() => {
     if (selectedSubCityId) {
-      setFilteredWoredas(woredas.filter(w => w.subCityId === selectedSubCityId));
-      form.setValue('woredaId', '');
+      setFilteredKebeles(kebeles.filter(k => k.subCityId === selectedSubCityId));
       form.setValue('kebeleId', '');
-    } else {
-      setFilteredWoredas([]);
-    }
-  }, [selectedSubCityId, woredas, form]);
-
-  useEffect(() => {
-    if (selectedWoredaId) {
-      setFilteredKebeles(kebeles.filter(k => k.woredaId === selectedWoredaId));
-      form.setValue('kebeleId', '');
+      form.setValue('ketenaId', '');
     } else {
       setFilteredKebeles([]);
     }
-  }, [selectedWoredaId, kebeles, form]);
+  }, [selectedSubCityId, kebeles, form]);
+
+  useEffect(() => {
+    if (selectedKebeleId) {
+      setFilteredKetenas(ketenas.filter(kt => kt.kebeleId === selectedKebeleId));
+      form.setValue('ketenaId', '');
+    } else {
+      setFilteredKetenas([]);
+    }
+  }, [selectedKebeleId, ketenas, form]);
   
   useEffect(() => {
     if (defaultValues) {
       if (defaultValues.subCityId) {
-        setFilteredWoredas(woredas.filter(w => w.subCityId === defaultValues.subCityId));
+        setFilteredKebeles(kebeles.filter(k => k.subCityId === defaultValues.subCityId));
       }
-      if (defaultValues.woredaId) {
-        setFilteredKebeles(kebeles.filter(k => k.woredaId === defaultValues.woredaId));
+      if (defaultValues.kebeleId) {
+        setFilteredKetenas(ketenas.filter(kt => kt.kebeleId === defaultValues.kebeleId));
       }
     }
-  }, [defaultValues, woredas, kebeles]);
+  }, [defaultValues, kebeles, ketenas]);
 
   function onSubmit(values: FormValues) {
     if (!user) {
@@ -226,28 +226,12 @@ export function HousingForm({ subCities, woredas, kebeles, defaultValues }: Hous
                  {form.formState.errors.subCityId && <p className="text-sm text-destructive">{form.formState.errors.subCityId.message}</p>}
               </div>
               <div className="space-y-2">
-                <Label>Woreda</Label>
-                <Controller
-                  control={form.control}
-                  name="woredaId"
-                  render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedSubCityId}>
-                      <SelectTrigger><SelectValue placeholder="Select Woreda" /></SelectTrigger>
-                      <SelectContent>
-                        {filteredWoredas.map(w => <SelectItem key={w.id} value={w.id}>{w.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                 {form.formState.errors.woredaId && <p className="text-sm text-destructive">{form.formState.errors.woredaId.message}</p>}
-              </div>
-              <div className="space-y-2">
                 <Label>Kebele</Label>
                 <Controller
                   control={form.control}
                   name="kebeleId"
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedWoredaId}>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedSubCityId}>
                       <SelectTrigger><SelectValue placeholder="Select Kebele" /></SelectTrigger>
                       <SelectContent>
                         {filteredKebeles.map(k => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
@@ -256,6 +240,22 @@ export function HousingForm({ subCities, woredas, kebeles, defaultValues }: Hous
                   )}
                 />
                  {form.formState.errors.kebeleId && <p className="text-sm text-destructive">{form.formState.errors.kebeleId.message}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label>Ketena</Label>
+                <Controller
+                  control={form.control}
+                  name="ketenaId"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value} disabled={!selectedKebeleId}>
+                      <SelectTrigger><SelectValue placeholder="Select Ketena" /></SelectTrigger>
+                      <SelectContent>
+                        {filteredKetenas.map(k => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                 {form.formState.errors.ketenaId && <p className="text-sm text-destructive">{form.formState.errors.ketenaId.message}</p>}
               </div>
             </CardContent>
           </Card>
@@ -284,5 +284,3 @@ export function HousingForm({ subCities, woredas, kebeles, defaultValues }: Hous
     </form>
   );
 }
-
-    

@@ -14,13 +14,13 @@ export default function EditHousingPage({ params }: { params: { id: string } }) 
   const subCitiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'subCities') : null, [firestore]);
   const { data: subCities, isLoading: isLoadingSubCities } = useCollection(subCitiesQuery);
 
-  const woredasQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'woredas') : null, [firestore]);
-  const { data: woredas, isLoading: isLoadingWoredas } = useCollection(woredasQuery);
-
   const kebelesQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'kebeles') : null, [firestore]);
   const { data: kebeles, isLoading: isLoadingKebeles } = useCollection(kebelesQuery);
+  
+  const ketenasQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'ketenas') : null, [firestore]);
+  const { data: ketenas, isLoading: isLoadingKetenas } = useCollection(ketenasQuery);
 
-  const isLoading = isLoadingHouse || isLoadingSubCities || isLoadingWoredas || isLoadingKebeles;
+  const isLoading = isLoadingHouse || isLoadingSubCities || isLoadingKebeles || isLoadingKetenas;
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -35,12 +35,10 @@ export default function EditHousingPage({ params }: { params: { id: string } }) 
        <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Edit House: {house.houseNumber}</h1>
        <HousingForm 
         subCities={subCities || []}
-        woredas={woredas || []}
         kebeles={kebeles || []}
+        ketenas={ketenas || []}
         defaultValues={house}
        />
     </div>
   );
 }
-
-    

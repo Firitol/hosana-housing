@@ -19,13 +19,13 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
   const subCitiesQuery = useMemoFirebase(() => firestore ? collection(firestore, 'subCities') : null, [firestore]);
   const { data: subCities, isLoading: isLoadingSubCities } = useCollection(subCitiesQuery);
 
-  const woredasQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'woredas') : null, [firestore]);
-  const { data: woredas, isLoading: isLoadingWoredas } = useCollection(woredasQuery);
-
   const kebelesQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'kebeles') : null, [firestore]);
   const { data: kebeles, isLoading: isLoadingKebeles } = useCollection(kebelesQuery);
 
-  const isLoading = isLoadingHouse || isLoadingSubCities || isLoadingWoredas || isLoadingKebeles;
+  const ketenasQuery = useMemoFirebase(() => firestore ? collectionGroup(firestore, 'ketenas') : null, [firestore]);
+  const { data: ketenas, isLoading: isLoadingKetenas } = useCollection(ketenasQuery);
+
+  const isLoading = isLoadingHouse || isLoadingSubCities || isLoadingKebeles || isLoadingKetenas;
 
   if (isLoading) {
     return <div>Loading...</div>;
@@ -36,8 +36,8 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
   }
 
   const subCity = subCities?.find(sc => sc.id === house.subCityId)?.name || 'N/A';
-  const woreda = woredas?.find(w => w.id === house.woredaId)?.name || 'N/A';
   const kebele = kebeles?.find(k => k.id === house.kebeleId)?.name || 'N/A';
+  const ketena = ketenas?.find(kt => kt.id === house.ketenaId)?.name || 'N/A';
   
   const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
@@ -72,8 +72,8 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
             <div><strong>Family Size:</strong> {house.familySize}</div>
             <div><strong>House Type:</strong> {house.houseType}</div>
             <div><strong>Sub-City:</strong> {subCity}</div>
-            <div><strong>Woreda:</strong> {woreda}</div>
             <div><strong>Kebele:</strong> {kebele}</div>
+            <div><strong>Ketena:</strong> {ketena}</div>
             <div className="md:col-span-2"><strong>Address:</strong> {house.addressDescription}</div>
             <div className="md:col-span-2"><strong>Registered:</strong> {house.createdAt?.toDate().toLocaleDateString() || 'N/A'}</div>
           </CardContent>
@@ -100,5 +100,3 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
     </div>
   );
 }
-
-    
