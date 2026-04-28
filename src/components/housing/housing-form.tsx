@@ -267,7 +267,7 @@ export function HousingForm({ subCities, kebeles, ketenas, defaultValues }: Hous
             </CardHeader>
             <CardContent className="h-64 p-0">
               <MapPicker
-                initialPosition={{lat: form.getValues('latitude'), lng: form.getValues('longitude')}}
+                initialPosition={form.getValues()}
                 onLocationSelect={(coords) => {
                   form.setValue('latitude', coords.lat);
                   form.setValue('longitude', coords.lng);

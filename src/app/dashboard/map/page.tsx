@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
+import { Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -12,6 +12,7 @@ import { collection, collectionGroup } from 'firebase/firestore';
 import type { House, SubCity, Kebele, Ketena } from '@/lib/definitions';
 import useSupercluster from 'use-supercluster';
 import { ExternalLink, Home } from 'lucide-react';
+import { GoogleMapsProvider } from '@/components/google-maps-provider';
 
 function useDebounce<T>(value: T, delay: number): T {
     const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -185,26 +186,16 @@ export default function GeoMapDashboardPage() {
             return searchMatch && subCityMatch && kebeleMatch && ketenaMatch;
         });
     }, [houses, debouncedSearchQuery, selectedSubCity, selectedKebele, selectedKetena]);
-
-    const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-    if (!googleMapsApiKey) {
-        return (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-destructive">Google Maps API key is missing. Please configure it in your environment variables.</p>
-          </div>
-        );
-    }
     
     return (
         <div className="h-[calc(100vh-6rem)] w-full flex relative">
-            <APIProvider apiKey={googleMapsApiKey}>
+            <GoogleMapsProvider>
                 <MapController 
                     filteredHouses={filteredHouses}
                     selectedHouse={selectedHouse}
                     setSelectedHouse={setSelectedHouse}
                 />
-            </APIProvider>
+            </GoogleMapsProvider>
 
             <Card className="absolute top-4 left-4 w-full max-w-sm max-h-[calc(100%-2rem)] flex flex-col">
                 <CardHeader>

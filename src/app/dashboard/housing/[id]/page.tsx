@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Pen } from "lucide-react";
-import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
+import { Map, Marker } from "@vis.gl/react-google-maps";
 import { useDoc, useCollection, useFirestore, useMemoFirebase } from "@/firebase";
 import { doc, collection, collectionGroup } from "firebase/firestore";
 import { House } from "@/lib/definitions";
+import { GoogleMapsProvider } from "@/components/google-maps-provider";
 
 export default function HouseDetailPage({ params }: { params: { id: string } }) {
   const firestore = useFirestore();
@@ -39,16 +40,6 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
   const kebele = kebeles?.find(k => k.id === house.kebeleId)?.name || 'N/A';
   const ketena = ketenas?.find(kt => kt.id === house.ketenaId)?.name || 'N/A';
   
-  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
-  if (!googleMapsApiKey) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <p className="text-destructive">Google Maps API key is missing. Please configure it in your environment variables.</p>
-      </div>
-    );
-  }
-
   const gps = { lat: house.latitude, lng: house.longitude };
 
   return (
@@ -84,7 +75,7 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
             <CardTitle>Location</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px] w-full p-0">
-             <APIProvider apiKey={googleMapsApiKey}>
+             <GoogleMapsProvider>
                 <Map
                   defaultCenter={gps}
                   defaultZoom={15}
@@ -93,7 +84,7 @@ export default function HouseDetailPage({ params }: { params: { id: string } }) 
                 >
                   <Marker position={gps} />
                 </Map>
-              </APIProvider>
+              </GoogleMapsProvider>
           </CardContent>
         </Card>
       </div>
