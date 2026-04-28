@@ -42,13 +42,13 @@ function MapController({ filteredHouses, selectedHouse, setSelectedHouse }: { fi
         options: { radius: 75, maxZoom: 20 }
     });
 
-    const handleMapChange = (e: { zoom: number; bounds: google.maps.LatLngBounds | undefined; }) => {
+    const handleMapChange = (e: { zoom: number; bounds: { west: number; south: number; east: number; north: number; } | undefined; }) => {
         setZoom(e.zoom);
         setBounds(e.bounds ? [
-          e.bounds.getSouthWest().lng(),
-          e.bounds.getSouthWest().lat(),
-          e.bounds.getNorthEast().lng(),
-          e.bounds.getNorthEast().lat(),
+          e.bounds.west,
+          e.bounds.south,
+          e.bounds.east,
+          e.bounds.north,
         ] : undefined);
       };
 
@@ -61,7 +61,7 @@ function MapController({ filteredHouses, selectedHouse, setSelectedHouse }: { fi
             mapId="geo-dashboard-map"
             className="rounded-lg h-full w-full"
             gestureHandling="greedy"
-            onCameraChanged={e => handleMapChange({zoom: e.detail.zoom, bounds: e.detail.bounds})}
+            onCameraChanged={e => handleMapChange({zoom: e.detail.zoom, bounds: e.detail.bounds as any})}
         >
             {clusters.map(cluster => {
                 const [longitude, latitude] = cluster.geometry.coordinates;
@@ -226,21 +226,21 @@ export default function GeoMapDashboardPage() {
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                             />
-                            <Select value={selectedSubCity || ''} onValueChange={v => setSelectedSubCity(v === 'all' ? null : v)}>
+                            <Select value={selectedSubCity || 'all'} onValueChange={v => setSelectedSubCity(v === 'all' ? null : v)}>
                                 <SelectTrigger><SelectValue placeholder="Filter by Sub-City" /></SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Sub-Cities</SelectItem>
                                     {subCities?.map(sc => <SelectItem key={sc.id} value={sc.id}>{sc.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
-                             <Select value={selectedKebele || ''} onValueChange={v => setSelectedKebele(v === 'all' ? null : v)} disabled={!selectedSubCity}>
+                             <Select value={selectedKebele || 'all'} onValueChange={v => setSelectedKebele(v === 'all' ? null : v)} disabled={!selectedSubCity}>
                                 <SelectTrigger><SelectValue placeholder="Filter by Kebele" /></SelectTrigger>
                                 <SelectContent>
                                      <SelectItem value="all">All Kebeles</SelectItem>
                                     {filteredKebeles.map(k => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
-                             <Select value={selectedKetena || ''} onValueChange={v => setSelectedKetena(v === 'all' ? null : v)} disabled={!selectedKebele}>
+                             <Select value={selectedKetena || 'all'} onValueChange={v => setSelectedKetena(v === 'all' ? null : v)} disabled={!selectedKebele}>
                                 <SelectTrigger><SelectValue placeholder="Filter by Ketena" /></SelectTrigger>
                                 <SelectContent>
                                      <SelectItem value="all">All Ketenas</SelectItem>
