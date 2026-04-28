@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import {
   Card,
   CardContent,
@@ -13,7 +14,7 @@ import { Home, Users, MapPin, Building2 } from 'lucide-react';
 
 function StatCard({ title, value, icon: Icon, description, isLoading }: { title: string, value: string | number, icon: React.ElementType, description?: string, isLoading: boolean }) {
     return (
-        <Card>
+        <Card className="hover:bg-muted/50 transition-colors">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">{title}</CardTitle>
                 <Icon className="h-4 w-4 text-muted-foreground" />
@@ -48,34 +49,42 @@ export function StatsCards() {
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <StatCard 
-            title="Total Houses"
-            value={houses?.length || 0}
-            icon={Home}
-            isLoading={isLoadingHouses}
-            description="Total registered houses in the system"
-        />
-        <StatCard 
-            title="Sub-Cities"
-            value={subCities?.length || 0}
-            icon={Building2}
-            isLoading={isLoadingSubCities}
-            description="Total administrative sub-cities"
-        />
-        <StatCard 
-            title="Kebeles"
-            value={kebeles?.length || 0}
-            icon={MapPin}
-            isLoading={isLoadingKebeles}
-            description="Across all sub-cities"
-        />
-        <StatCard 
-            title="Registered Users"
-            value={users?.length || 0}
-            icon={Users}
-            isLoading={isLoadingUsers}
-            description="Total users with system access"
-        />
+        <Link href="/dashboard/housing">
+            <StatCard 
+                title="Total Houses"
+                value={houses?.length || 0}
+                icon={Home}
+                isLoading={isLoadingHouses}
+                description="Total registered houses in the system"
+            />
+        </Link>
+        <Link href="/dashboard/map">
+            <StatCard 
+                title="Sub-Cities"
+                value={subCities?.length || 0}
+                icon={Building2}
+                isLoading={isLoadingSubCities}
+                description="Total administrative sub-cities"
+            />
+        </Link>
+        <Link href="/dashboard/map">
+            <StatCard 
+                title="Kebeles"
+                value={kebeles?.length || 0}
+                icon={MapPin}
+                isLoading={isLoadingKebeles}
+                description="Across all sub-cities"
+            />
+        </Link>
+        <Link href="/dashboard/settings">
+            <StatCard 
+                title="Registered Users"
+                value={users?.length || 0}
+                icon={Users}
+                isLoading={isLoadingUsers}
+                description="Total users with system access"
+            />
+        </Link>
     </div>
   );
 }
