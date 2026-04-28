@@ -226,24 +226,24 @@ export default function GeoMapDashboardPage() {
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                             />
-                            <Select value={selectedSubCity || ''} onValueChange={v => setSelectedSubCity(v)}>
+                            <Select value={selectedSubCity || ''} onValueChange={v => setSelectedSubCity(v === 'all' ? null : v)}>
                                 <SelectTrigger><SelectValue placeholder="Filter by Sub-City" /></SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Sub-Cities</SelectItem>
+                                    <SelectItem value="all">All Sub-Cities</SelectItem>
                                     {subCities?.map(sc => <SelectItem key={sc.id} value={sc.id}>{sc.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
-                             <Select value={selectedKebele || ''} onValueChange={v => setSelectedKebele(v)} disabled={!selectedSubCity}>
+                             <Select value={selectedKebele || ''} onValueChange={v => setSelectedKebele(v === 'all' ? null : v)} disabled={!selectedSubCity}>
                                 <SelectTrigger><SelectValue placeholder="Filter by Kebele" /></SelectTrigger>
                                 <SelectContent>
-                                     <SelectItem value="">All Kebeles</SelectItem>
+                                     <SelectItem value="all">All Kebeles</SelectItem>
                                     {filteredKebeles.map(k => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
-                             <Select value={selectedKetena || ''} onValueChange={v => setSelectedKetena(v)} disabled={!selectedKebele}>
+                             <Select value={selectedKetena || ''} onValueChange={v => setSelectedKetena(v === 'all' ? null : v)} disabled={!selectedKebele}>
                                 <SelectTrigger><SelectValue placeholder="Filter by Ketena" /></SelectTrigger>
                                 <SelectContent>
-                                     <SelectItem value="">All Ketenas</SelectItem>
+                                     <SelectItem value="all">All Ketenas</SelectItem>
                                     {filteredKetenas.map(k => <SelectItem key={k.id} value={k.id}>{k.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
@@ -254,5 +254,3 @@ export default function GeoMapDashboardPage() {
         </div>
     );
 }
-
-    
