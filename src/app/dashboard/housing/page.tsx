@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useCollection, useFirestore, useMemoFirebase } from '@/firebase';
 import { collection, collectionGroup } from 'firebase/firestore';
+import { CsvImporter } from '@/components/housing/csv-importer';
 
 export default function HousingPage() {
     const firestore = useFirestore();
@@ -35,9 +36,16 @@ export default function HousingPage() {
         <div className="space-y-4">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Housing Records</h1>
-                <Link href="/dashboard/housing/new">
-                    <Button>Add New House</Button>
-                </Link>
+                <div className="flex items-center gap-2">
+                    <CsvImporter
+                        subCities={subCities || []}
+                        woredas={woredas || []}
+                        kebeles={kebeles || []}
+                    />
+                    <Link href="/dashboard/housing/new">
+                        <Button>Add New House</Button>
+                    </Link>
+                </div>
             </div>
             <div className="flex flex-col md:flex-row gap-4 items-center">
                 <Input placeholder="Search by House # or Name..." className="max-w-sm" />
@@ -74,5 +82,3 @@ export default function HousingPage() {
         </div>
     );
 }
-
-    
