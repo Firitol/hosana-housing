@@ -19,18 +19,29 @@ import {
   LogOut,
 } from 'lucide-react';
 import { HosanaNexusLogo } from '../icons';
-import { Button } from '../ui/button';
-
-const links = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/dashboard/housing', label: 'Housing', icon: Home },
-  { href: '/dashboard/map', label: 'Map View', icon: Map },
-  { href: '/dashboard/audit-log', label: 'Audit Log', icon: FileClock },
-  { href: '/dashboard/settings', label: 'Settings', icon: Settings },
-];
+import { useUser, useAuth } from '@/firebase';
+import { signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 export function NavLinks() {
   const pathname = usePathname();
+  const { user } = useUser();
+  const auth = useAuth();
+  const router = useRouter();
+  const lang = user?.language || 'English';
+
+  const links = [
+    { href: '/dashboard', label: lang === 'Amharic' ? 'ዳሽቦርድ' : 'Dashboard', icon: LayoutDashboard },
+    { href: '/dashboard/housing', label: lang === 'Amharic' ? 'የቤት መረጃ' : 'Housing', icon: Home },
+    { href: '/dashboard/map', label: lang === 'Amharic' ? 'የካርታ እይታ' : 'Map View', icon: Map },
+    { href: '/dashboard/audit-log', label: lang === 'Amharic' ? 'የኦዲት መዝገብ' : 'Audit Log', icon: FileClock },
+    { href: '/dashboard/settings', label: lang === 'Amharic' ? 'ቅንብሮች' : 'Settings', icon: Settings },
+  ];
+
+  const handleLogout = async () => {
+    await signOut(auth);
+    router.push('/login');
+  };
 
   return (
     <>
@@ -65,11 +76,9 @@ export function NavLinks() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild tooltip={{children: 'Logout'}}>
-              <Link href="/login">
+            <SidebarMenuButton onClick={handleLogout} tooltip={{children: lang === 'Amharic' ? 'ውጣ' : 'Logout'}}>
                 <LogOut />
-                <span>Logout</span>
-              </Link>
+                <span>{lang === 'Amharic' ? 'ውጣ' : 'Logout'}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

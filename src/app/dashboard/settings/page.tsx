@@ -43,6 +43,8 @@ function ProfileForm() {
     }
   });
   
+  const lang = form.watch('language');
+
   useEffect(() => {
     if (userProfile) {
       form.reset({
@@ -57,8 +59,8 @@ function ProfileForm() {
     if (!userDocRef) return;
     updateDocumentNonBlocking(userDocRef, { ...data, updatedAt: serverTimestamp() });
     toast({
-      title: "Profile updated",
-      description: "Your profile has been successfully updated.",
+      title: lang === 'Amharic' ? 'መገለጫ ተዘምኗል' : 'Profile updated',
+      description: lang === 'Amharic' ? 'የእርስዎ መገለጫ በተሳካ ሁኔታ ተዘምኗል።' : "Your profile has been successfully updated.",
     });
   };
 
@@ -95,26 +97,26 @@ function ProfileForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription>Manage your public profile and language preferences.</CardDescription>
+        <CardTitle>{lang === 'Amharic' ? 'ፕሮፋይል' : 'Profile'}</CardTitle>
+        <CardDescription>{lang === 'Amharic' ? 'የእርስዎን ይፋዊ መገለጫ እና የቋንቋ ምርጫዎች ያስተዳድሩ።' : 'Manage your public profile and language preferences.'}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Name</Label>
+            <Label htmlFor="fullName">{lang === 'Amharic' ? 'ሙሉ ስም' : 'Name'}</Label>
             <Input id="fullName" {...form.register('fullName')} />
             {form.formState.errors.fullName && <p className="text-sm text-destructive">{form.formState.errors.fullName.message}</p>}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{lang === 'Amharic' ? 'ኢሜይል' : 'Email'}</Label>
             <Input id="email" type="email" value={userProfile?.email || ''} readOnly disabled />
           </div>
            <div className="space-y-2">
-            <Label htmlFor="phoneNumber">Phone Number</Label>
+            <Label htmlFor="phoneNumber">{lang === 'Amharic' ? 'ስልክ ቁጥር' : 'Phone Number'}</Label>
             <Input id="phoneNumber" {...form.register('phoneNumber')} />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="language">Language</Label>
+            <Label htmlFor="language">{lang === 'Amharic' ? 'ቋንቋ' : 'Language'}</Label>
             <Controller
               control={form.control}
               name="language"
@@ -131,7 +133,7 @@ function ProfileForm() {
               )}
             />
           </div>
-          <Button type="submit" disabled={form.formState.isSubmitting}>Save Changes</Button>
+          <Button type="submit" disabled={form.formState.isSubmitting}>{lang === 'Amharic' ? 'ለውጦችን ያስቀምጡ' : 'Save Changes'}</Button>
         </form>
       </CardContent>
     </Card>
@@ -140,6 +142,8 @@ function ProfileForm() {
 
 
 export default function SettingsPage() {
+  // We can't get user here because ProfileForm needs to be a client component to use hooks.
+  // So we pass lang down or each component gets it. For now, getting it in the component is fine.
   return (
     <div className="space-y-6">
       <h1 className="text-2xl md:text-3xl font-bold tracking-tight">Settings</h1>
@@ -164,5 +168,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
-    
