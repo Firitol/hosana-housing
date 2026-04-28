@@ -68,3 +68,16 @@ export type AuditLog = {
   recordId?: string;
   description: string;
 };
+
+// Type for Supercluster
+export type GeoPoint = {
+    type: "Feature";
+    properties: {
+        cluster: boolean;
+        [key: string]: any;
+    };
+    geometry: {
+        type: "Point";
+        coordinates: [number, number];
+    };
+}
